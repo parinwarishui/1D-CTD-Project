@@ -19,7 +19,6 @@ class MainApp(tk.Tk):
         self.title("Duolango") # Set window title
         self.rowconfigure(0, weight=1)
         self.columnconfigure(0, weight = 1)
-        self.resizable(False, False)
 
         main_container = ttk.Frame(self) # Create a container frame with MainApp as parent
         main_container.grid(column = 0, row = 0, sticky = "nsew") 
@@ -49,30 +48,41 @@ class MainApp(tk.Tk):
 
 class StartPage(ttk.Frame):
     def __init__(self, parent, main_app: MainApp):
-        super().__init__(parent, relief="solid", padding = (80, 100)) # Initialize StartPage as a child class of ttk.Frame
+        super().__init__(parent, relief="solid") # Initialize StartPage as a child class of ttk.Frame
 
-        game_title = ttk.Label(self, text = "Duolango", justify = "center", font = ("TkDefaultFont", 50))
-        game_title.grid(column = 0, row = 0, sticky = "s", columnspan = 3, padx = 5, pady = 5)
+        game_title = ttk.Label(self, text = "Duolango", justify = "center", font = ("TkDefaultFont", 50)) # Title
+        game_title.grid(column = 0, row = 0, sticky = "s", columnspan = 3, padx = 5, pady = 5) # Place title
 
-        play_button = ttk.Button(self, text = "Play!", command = lambda : main_app.show_page(GamePage))
-        play_button.grid(column = 1, row = 1, sticky = "n", padx = 5, pady = 5)
+        play_button = ttk.Button(self, text = "Play!", command = lambda : main_app.show_page(GamePage)) # Play button
+        play_button.grid(column = 1, row = 1, sticky = "n", padx = 5, pady = 5) # Place play button
 
-        '''
-        self.columnconfigure(0, weight = 1) # reenable if window resizing is going to be implemented
+        # Resizing behavior
+        self.columnconfigure(0, weight = 1)
         self.columnconfigure(2, weight = 1)
         self.rowconfigure(0, weight = 1)
         self.rowconfigure(2, weight = 1)
-        '''
+
 class GamePage(ttk.Frame):
     def __init__(self, parent, main_app: MainApp):
-        super().__init__(parent, relief="solid", padding = (80, 100)) # Initialize StartPage as a child class of ttk.Frame
+        super().__init__(parent, relief="solid") # Initialize GamePage as a child class of ttk.Frame
 
         game_title = ttk.Label(self, text = "the game", justify = "center", font = ("TkDefaultFont", 50))
-        game_title.grid(column = 0, row = 0, sticky = "s", columnspan = 3, padx = 5, pady = 5)
+        game_title.grid(column = 0, row = 0, padx = 5, pady = 5)
 
-        play_button = ttk.Button(self, text = "asdfasdfasdf!")
-        play_button.grid(column = 1, row = 1, sticky = "n", padx = 5, pady = 5)
+        game_canvas = GameCanvas(self)
+        game_canvas.grid(column = 1, row = 0, padx = 5, pady = 5)
 
+        self.columnconfigure(0, weight = 1, uniform = "awawawa")
+        self.columnconfigure(1, weight = 1, uniform = "awawawa")
+        self.rowconfigure(0, weight = 1)
+        self.rowconfigure(1, weight = 1)
+
+# Resizing: https://stackoverflow.com/questions/22835289/how-to-get-tkinter-canvas-to-dynamically-resize-to-window-width
+
+class GameCanvas(tk.Canvas):
+    def __init__(self, parent):
+        super().__init__(parent) # Initialize GameCanvas as a child class of tk.Canvas
+        t = turtle.RawTurtle(self) # Initialize a RawTurtle object as a child of GameCanvas
 
 
 MainGame = MainApp()
