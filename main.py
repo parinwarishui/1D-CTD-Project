@@ -84,6 +84,5 @@ class GameCanvas(tk.Canvas):
         super().__init__(parent) # Initialize GameCanvas as a child class of tk.Canvas
         t = turtle.RawTurtle(self) # Initialize a RawTurtle object as a child of GameCanvas
 
-
 MainGame = MainApp()
 MainGame.mainloop()
