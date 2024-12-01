@@ -17,6 +17,7 @@ class MainApp(tk.Tk):
     def __init__(self):
         super().__init__() # Initialize MainApp as a child class of tk.Tk
         self.title("Duolango") # Set window title
+        self.geometry('960x480')
         self.rowconfigure(0, weight=1)
         self.columnconfigure(0, weight = 1)
 
@@ -40,7 +41,7 @@ class MainApp(tk.Tk):
         
         return pages
 
-    def show_page(self, page) -> None:
+    def show_page(self, page:ttk.Frame) -> None:
         frame = self.pages[page] # Get the page value (the frame used to display the page)
         frame.tkraise() # Raise the frame so that it's displayed
         return
@@ -64,24 +65,23 @@ class StartPage(ttk.Frame):
 
 class GamePage(ttk.Frame):
     def __init__(self, parent, main_app: MainApp):
-        super().__init__(parent, relief="solid") # Initialize GamePage as a child class of ttk.Frame
+        super().__init__(parent, relief="raised") # Initialize GamePage as a child class of ttk.Frame
 
         game_title = ttk.Label(self, text = "the game", justify = "center", font = ("TkDefaultFont", 50))
-        game_title.grid(column = 0, row = 0, padx = 5, pady = 5)
-
+        game_title.grid(column = 0, row = 0, padx = 5, pady = 5, sticky = "ns")
+        
         game_canvas = GameCanvas(self)
-        game_canvas.grid(column = 1, row = 0, padx = 5, pady = 5)
+        game_canvas.grid(column = 1, row = 0, padx = 1, pady = 30, sticky = "ns")
 
         self.columnconfigure(0, weight = 1, uniform = "awawawa")
         self.columnconfigure(1, weight = 1, uniform = "awawawa")
         self.rowconfigure(0, weight = 1)
-        self.rowconfigure(1, weight = 1)
 
 # Resizing: https://stackoverflow.com/questions/22835289/how-to-get-tkinter-canvas-to-dynamically-resize-to-window-width
 
 class GameCanvas(tk.Canvas):
     def __init__(self, parent):
-        super().__init__(parent) # Initialize GameCanvas as a child class of tk.Canvas
+        super().__init__(parent, highlightbackground = "black", highlightthickness=1) # Initialize GameCanvas as a child class of tk.Canvas
         t = turtle.RawTurtle(self) # Initialize a RawTurtle object as a child of GameCanvas
 
 MainGame = MainApp()
