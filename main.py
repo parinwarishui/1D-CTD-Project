@@ -17,9 +17,9 @@ class MainApp(tk.Tk):
     def __init__(self):
         super().__init__() # Initialize MainApp as a child class of tk.Tk
         self.title("Duolango") # Set window title
+        self.geometry('960x540')
         self.rowconfigure(0, weight=1)
         self.columnconfigure(0, weight = 1)
-        self.resizable(False, False)
 
         main_container = ttk.Frame(self) # Create a container frame with MainApp as parent
         main_container.grid(column = 0, row = 0, sticky = "nsew") 
@@ -41,7 +41,7 @@ class MainApp(tk.Tk):
         
         return pages
 
-    def show_page(self, page) -> None:
+    def show_page(self, page:ttk.Frame) -> None:
         frame = self.pages[page] # Get the page value (the frame used to display the page)
         frame.tkraise() # Raise the frame so that it's displayed
         return
@@ -49,31 +49,58 @@ class MainApp(tk.Tk):
 
 class StartPage(ttk.Frame):
     def __init__(self, parent, main_app: MainApp):
-        super().__init__(parent, relief="solid", padding = (80, 100)) # Initialize StartPage as a child class of ttk.Frame
+        super().__init__(parent, relief="solid") # Initialize StartPage as a child class of ttk.Frame
 
-        game_title = ttk.Label(self, text = "Duolango", justify = "center", font = ("TkDefaultFont", 50))
-        game_title.grid(column = 0, row = 0, sticky = "s", columnspan = 3, padx = 5, pady = 5)
+        game_title = ttk.Label(self, text = "Duolango", justify = "center", font = ("TkDefaultFont", 50)) # Title
+        game_title.grid(column = 0, row = 0, sticky = "s", columnspan = 3, padx = 5, pady = 5) # Place title
 
-        play_button = ttk.Button(self, text = "Play!", command = lambda : main_app.show_page(GamePage))
-        play_button.grid(column = 1, row = 1, sticky = "n", padx = 5, pady = 5)
+        play_button = ttk.Button(self, text = "Play!", command = lambda : main_app.show_page(GamePage)) # Play button
+        play_button.grid(column = 1, row = 1, sticky = "n", padx = 5, pady = 5) # Place play button
 
-        '''
-        self.columnconfigure(0, weight = 1) # reenable if window resizing is going to be implemented
+        # Resizing behavior
+        self.columnconfigure(0, weight = 1)
         self.columnconfigure(2, weight = 1)
         self.rowconfigure(0, weight = 1)
         self.rowconfigure(2, weight = 1)
-        '''
+
 class GamePage(ttk.Frame):
     def __init__(self, parent, main_app: MainApp):
-        super().__init__(parent, relief="solid", padding = (80, 100)) # Initialize StartPage as a child class of ttk.Frame
+        super().__init__(parent, relief = "solid") # Initialize GamePage as a child class of ttk.Frame
 
-        game_title = ttk.Label(self, text = "the game", justify = "center", font = ("TkDefaultFont", 50))
-        game_title.grid(column = 0, row = 0, sticky = "s", columnspan = 3, padx = 5, pady = 5)
+        question = ttk.Label(self, text = "qn", justify = "center", font = ("TkDefaultFont", 30))
+        question.grid(column = 0, row = 0)
+        
+        game_canvas = GameCanvas(self)
+        game_canvas.grid(column = 2, row = 0, sticky = "nsew", rowspan = 3)
 
-        play_button = ttk.Button(self, text = "asdfasdfasdf!")
-        play_button.grid(column = 1, row = 1, sticky = "n", padx = 5, pady = 5)
+        info_frame = ttk.Frame(self)
+        info_frame.grid(column = 0, row = 2, sticky = "nsew")
 
+        ttk.Separator(self, orient = "horizontal").grid(column = 0, row = 1, sticky = "ew")
+        ttk.Separator(self, orient = "vertical").grid(column = 1, row = 0, rowspan = 3, sticky = "ns")
 
+        self.columnconfigure(0, weight = 4)
+        self.columnconfigure(2, weight = 5)
+        self.rowconfigure(0, weight = 3)
+        self.rowconfigure(2, weight = 2)
+        
+
+# Resizing: https://stackoverflow.com/questions/22835289/how-to-get-tkinter-canvas-to-dynamically-resize-to-window-width
+
+class GameCanvas(tk.Canvas):
+    def __init__(self, parent):
+        super().__init__(parent, borderwidth = -2) # Initialize GameCanvas as a child class of tk.Canvas
+        self.t = turtle.RawTurtle(self) # Initialize a RawTurtle object as a child of GameCanvas
+        self.t.penup()
+        self.focus_set()
+    
+    def move_forward(self):
+        print("asdf")
+        self.t.setheading(90)
+        self.t.forward(10)
+
+# Deleting & creating pages: https://stackoverflow.com/questions/58292617/how-to-have-multiple-pages-in-tkinter-gui-without-opening-new-windows-using-fu
 
 MainGame = MainApp()
+MainGame.bind("w", lambda w: MainGame.pages[GamePage].game_canvas.move_forward()) # error
 MainGame.mainloop()
