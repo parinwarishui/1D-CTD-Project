@@ -13,6 +13,7 @@ from tkinter import ttk
 import random
 import turtle
 import time
+import copy
 from copy import deepcopy
 
 # set number of variables in the game
@@ -23,18 +24,58 @@ selected_answer = None
 
 # dictionary contains all words -- for testing version -- qns, ans
 words_list = [
-    {"word":"W1", "translation":"T1"},
-    {"word":"W2", "translation":"T2"},
-    {"word":"W3", "translation":"W3"},
-    {"word":"W4", "translation":"T4"},
-    {"word":"W5", "translation":"T5"},
-    {"word":"W6", "translation":"W6"},
-    {"word":"W7", "translation":"T7"},
-    {"word":"W8", "translation":"T8"},
-    {"word":"W9", "translation":"T9"},
-    {"word":"W10", "translation":"T10"},
-    
+    {"word": "W1", "translation": "T1"},
+    {"word": "W2", "translation": "T2"},
+    {"word": "W3", "translation": "W3"},
+    {"word": "W4", "translation": "T4"},
+    {"word": "W5", "translation": "T5"},
+    {"word": "W6", "translation": "W6"},
+    {"word": "W7", "translation": "T7"},
+    {"word": "W8", "translation": "T8"},
+    {"word": "W9", "translation": "T9"},
+    {"word": "W10", "translation": "T10"},
+    {"word": "W11", "translation": "T11"},
+    {"word": "W12", "translation": "T12"},
+    {"word": "W13", "translation": "T13"},
+    {"word": "W14", "translation": "T14"},
+    {"word": "W15", "translation": "T15"},
+    {"word": "W16", "translation": "T16"},
+    {"word": "W17", "translation": "T17"},
+    {"word": "W18", "translation": "T18"},
+    {"word": "W19", "translation": "T19"},
+    {"word": "W20", "translation": "T20"},
+    {"word": "W21", "translation": "T21"},
+    {"word": "W22", "translation": "T22"},
+    {"word": "W23", "translation": "T23"},
+    {"word": "W24", "translation": "T24"},
+    {"word": "W25", "translation": "T25"},
+    {"word": "W26", "translation": "T26"},
+    {"word": "W27", "translation": "T27"},
+    {"word": "W28", "translation": "T28"},
+    {"word": "W29", "translation": "T29"},
+    {"word": "W30", "translation": "T30"},
+    {"word": "W31", "translation": "T31"},
+    {"word": "W32", "translation": "T32"},
+    {"word": "W33", "translation": "T33"},
+    {"word": "W34", "translation": "T34"},
+    {"word": "W35", "translation": "T35"},
+    {"word": "W36", "translation": "T36"},
+    {"word": "W37", "translation": "T37"},
+    {"word": "W38", "translation": "T38"},
+    {"word": "W39", "translation": "T39"},
+    {"word": "W40", "translation": "T40"},
+    {"word": "W41", "translation": "T41"},
+    {"word": "W42", "translation": "T42"},
+    {"word": "W43", "translation": "T43"},
+    {"word": "W44", "translation": "T44"},
+    {"word": "W45", "translation": "T45"},
+    {"word": "W46", "translation": "T46"},
+    {"word": "W47", "translation": "T47"},
+    {"word": "W48", "translation": "T48"},
+    {"word": "W49", "translation": "T49"},
+    {"word": "W50", "translation": "T50"}
 ]
+
 
 '''
 ===========================================================
@@ -88,30 +129,36 @@ answers = []
 answer_text_map = {}  # Maps textboxes to their current answers
 corner_positions = [(-250, 250), (250, 250), (-250, -250), (250, -250)]
 
-# Pool of questions and answers
-question_pool = [
-    {"question": "What is 2 + 2?", "correct": "4", "wrong": ["3", "5", "6"]},
-    {"question": "What is the capital of France?", "correct": "Paris", "wrong": ["Berlin", "Madrid", "Rome"]},
-    {"question": "What color is the sky?", "correct": "Blue", "wrong": ["Green", "Red", "Yellow"]},
-    {"question": "How many legs does a spider have?", "correct": "8", "wrong": ["6", "10", "4"]},
-]
-
 # Current question
 current_question = None
 
+# current list with remaining words
+current_words_list = copy.copy(words_list)
+
 def load_question():
-    """Load a new question and update the question text and textboxes."""
+    global current_words_list
     global current_question
-    current_question = random.choice(question_pool)
+    global all_answers
+    global wrong_answers
+
+    # randomly select one item, and "pop" that exact item out by index
+    current_question = current_words_list.pop(current_words_list.index(random.choice(current_words_list)))
     
-    # Display the question
+    # format the string for the question, sub in the current question word
+    question_string = "What does {0} mean?".format(current_question["word"])
+
     question_display.clear()
-    question_display.write(
-        current_question["question"], align="center", font=("Arial", 16, "bold")
-    )
+    question_display.write(question_string, align="center", font=("Arial", 16, "bold"))
+
+    # create a list of all "choices" for the question
+    all_answers = [current_question["translation"]]
     
-    # Get the shuffled answers (correct + wrong ones)
-    all_answers = [current_question["correct"]] + current_question["wrong"]
+    # Get the wrong choices at random from the dict, and then add to the list of answers: all_answers
+    wrong_answers = random.sample(current_words_list, 3)
+
+    for i in wrong_answers:
+        all_answers.append(i["translation"])
+
     random.shuffle(all_answers)
     
     # Update textboxes with new answers
@@ -149,13 +196,14 @@ def check_collision():
     """Check for collisions with textboxes."""
     for textbox in answers:
         if player.distance(textbox) < 50:  # Collision detected
-            answer = answer_text_map[textbox]  # Retrieve the answer text
-            if answer == current_question["correct"]:
-                print("Correct! The answer was:", current_question["correct"])
+            answer = answer_text_map[textbox]  # get answer variable
+            # generate text for 2 cases, either we get the correct answer or incorrect answer
+            if answer == current_question["translation"]:
+                print("Correct! The answer was:", current_question["translation"])
             else:
-                print("Wrong! The correct answer was:", current_question["correct"])
-            player.goto(0, 0)  # Reset player's position to the center
-            load_question()  # Load a new question
+                print("Wrong! The answer was:", current_question["translation"])
+            player.goto(0, 0)  # reset player position back to center
+            load_question()  # load the next question!
             break
 
 def move_player():
@@ -221,15 +269,15 @@ screen.mainloop()
 
 #open random question in TOTAL_QUESTIONS
 ## go to "you won!" window after last question
-you_won_video()
+#you_won_video()
 
 
 ## go to "you lost!" window after losing all lives
-lives == 0
-def you_lost():
-    if TOTAL_HEARTS == 0:
-        print("you lost!")  
-you_lost()
+#lives == 0
+#def you_lost():
+#    if TOTAL_HEARTS == 0:
+#        print("you lost!")  
+#you_lost()
     
     
     
@@ -237,7 +285,7 @@ you_lost()
 
 
 # function to come up with the question
-
+'''
 available_questions = deepcopy(words_list)
 def generate_new_question(available_questions) -> dict:
     correct_pair = available_questions.pop(random.randrange(0, len(available_questions)))
@@ -249,15 +297,17 @@ def get_choices(words_list: list, correct_pair: dict) -> list:
     available_choices = deepcopy(words_list)
     available_choices.remove(correct_pair)
     options = []
-    while count <= 5:
+    while count < 5:
         options.append(available_choices.pop(random.randrange(0, len(available_choices)))) # Choose 1 random dict from list
+        print(options)
         count += 1
     return options
-
-print(options)
+'''
+#print(options)
 
 
 ## generate text and accept input for answer and check if correct or not
+'''
 def ask_player(question_dict, answer_list): #input a list
     qn = question_dict["word"]
     ans = input("answer:")
@@ -271,24 +321,24 @@ def ask_player(question_dict, answer_list): #input a list
     else:
         print(wrong)
     lives = lives - 1
-
+'''
 
 # SAVE FOR LATER
 ## place answers on screen as "turtle elements"
-turtle_elements = #answer of the question
+#turtle_elements = #answer of the question
 ## config to display the question (along with everything else)
 
 # SAVE FOR LATER
 # function to check if turtle has "touched" the answers
-turtle.value() == answer_cooordinates
+#turtle.value() == answer_cooordinates
 ## if touched any of the answers
-if turtle.value() == answer_cooordinates:
-    generate question 
+#if turtle.value() == answer_cooordinates:
+#    generate question 
     
 ### check if correct or not -> then update question, points, lives, etc
 ## if times up before touching
 ### -1 lives -> update question
-random.TOTAL_QUESTIONS:
+#random.TOTAL_QUESTIONS:
  
 '''
 question_label = tk.Label(root, text="", font=("Arial", 16))
