@@ -17,7 +17,7 @@ class MainApp(tk.Tk):
     def __init__(self):
         super().__init__() # Initialize MainApp as a child class of tk.Tk
         self.title("Duolango") # Set window title
-        self.geometry('960x480')
+        self.geometry('960x540')
         self.rowconfigure(0, weight=1)
         self.columnconfigure(0, weight = 1)
 
@@ -65,23 +65,30 @@ class StartPage(ttk.Frame):
 
 class GamePage(ttk.Frame):
     def __init__(self, parent, main_app: MainApp):
-        super().__init__(parent, relief="raised") # Initialize GamePage as a child class of ttk.Frame
+        super().__init__(parent, relief = "solid") # Initialize GamePage as a child class of ttk.Frame
 
-        game_title = ttk.Label(self, text = "the game", justify = "center", font = ("TkDefaultFont", 50))
-        game_title.grid(column = 0, row = 0, padx = 5, pady = 5, sticky = "ns")
+        question = ttk.Label(self, text = "qn", justify = "center", font = ("TkDefaultFont", 30))
+        question.grid(column = 0, row = 0)
         
         game_canvas = GameCanvas(self)
-        game_canvas.grid(column = 1, row = 0, padx = 1, pady = 30, sticky = "ns")
+        game_canvas.grid(column = 2, row = 0, sticky = "nsew", rowspan = 3)
 
-        self.columnconfigure(0, weight = 1, uniform = "awawawa")
-        self.columnconfigure(1, weight = 1, uniform = "awawawa")
-        self.rowconfigure(0, weight = 1)
+        info_frame = ttk.Frame(self)
+        info_frame.grid(column = 0, row = 2, sticky = "nsew")
+
+        ttk.Separator(self, orient = "horizontal").grid(column = 0, row = 1, sticky = "ew")
+        ttk.Separator(self, orient = "vertical").grid(column = 1, row = 0, rowspan = 3, sticky = "ns")
+
+        self.columnconfigure(0, weight = 4)
+        self.columnconfigure(2, weight = 5)
+        self.rowconfigure(0, weight = 3)
+        self.rowconfigure(2, weight = 2)
 
 # Resizing: https://stackoverflow.com/questions/22835289/how-to-get-tkinter-canvas-to-dynamically-resize-to-window-width
 
 class GameCanvas(tk.Canvas):
     def __init__(self, parent):
-        super().__init__(parent, highlightbackground = "black", highlightthickness=1) # Initialize GameCanvas as a child class of tk.Canvas
+        super().__init__(parent, borderwidth = -2) # Initialize GameCanvas as a child class of tk.Canvas
         t = turtle.RawTurtle(self) # Initialize a RawTurtle object as a child of GameCanvas
 
 MainGame = MainApp()
