@@ -83,13 +83,24 @@ class GamePage(ttk.Frame):
         self.columnconfigure(2, weight = 5)
         self.rowconfigure(0, weight = 3)
         self.rowconfigure(2, weight = 2)
+        
 
 # Resizing: https://stackoverflow.com/questions/22835289/how-to-get-tkinter-canvas-to-dynamically-resize-to-window-width
 
 class GameCanvas(tk.Canvas):
     def __init__(self, parent):
         super().__init__(parent, borderwidth = -2) # Initialize GameCanvas as a child class of tk.Canvas
-        t = turtle.RawTurtle(self) # Initialize a RawTurtle object as a child of GameCanvas
+        self.t = turtle.RawTurtle(self) # Initialize a RawTurtle object as a child of GameCanvas
+        self.t.penup()
+        self.focus_set()
+    
+    def move_forward(self):
+        print("asdf")
+        self.t.setheading(90)
+        self.t.forward(10)
+
+# Deleting & creating pages: https://stackoverflow.com/questions/58292617/how-to-have-multiple-pages-in-tkinter-gui-without-opening-new-windows-using-fu
 
 MainGame = MainApp()
+MainGame.bind("w", lambda w: MainGame.pages[GamePage].game_canvas.move_forward()) # error
 MainGame.mainloop()
