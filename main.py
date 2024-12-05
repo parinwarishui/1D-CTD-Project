@@ -21,31 +21,19 @@ class MainApp(tk.Tk):
         self.rowconfigure(0, weight=1)
         self.columnconfigure(0, weight = 1)
 
-        main_container = ttk.Frame(self) # Create a container frame with MainApp as parent
-        main_container.grid(column = 0, row = 0, sticky = "nsew") 
+        self.main_container = ttk.Frame(self) # Create a container frame with MainApp as parent
+        self.main_container.grid(column = 0, row = 0, sticky = "nsew") 
         # Put main_container in a MainApp grid (row 0, col 0), sticky N S E W means centered in grid
-        main_container.rowconfigure(0, weight = 1) # Configure main_container grid of col 0 with weight 1
-        main_container.columnconfigure(0, weight = 1) # Configure main_container grid of row 0 with weight 1
+        self.main_container.rowconfigure(0, weight = 1) # Configure main_container grid of col 0 with weight 1
+        self.main_container.columnconfigure(0, weight = 1) # Configure main_container grid of row 0 with weight 1
 
-        self.pages = self.get_all_pages(main_container) # Insert all pages into a dictionary main_container is passed by reference
-        self.show_page(StartPage) # Start the program by displaying StartPage
-    
-    def get_all_pages(self, main_container) -> dict: # Function to get all pages and return as dict
-        list_of_pages = (StartPage, GamePage) # Add page classes here
-        pages = {} # Initialize an empty dict to store pages
+        self.goto_page(StartPage)
 
-        for page in list_of_pages:
-            frame = page(main_container, self) # Initializes each page. main_container and MainApp are passed as arguments. 
-            pages[page] = frame # The initialized pages are added to pages dictionary with the class objects as their keys
-            frame.grid(row = 0, column = 0, sticky = "nsew") # Places each page in main_container grid
-        
-        return pages
-
-    def show_page(self, page:ttk.Frame) -> None:
-        frame = self.pages[page] # Get the page value (the frame used to display the page)
-        frame.tkraise() # Raise the frame so that it's displayed
-        return
-
+    def goto_page(self, page_to_goto):
+        for child in self.main_container.winfo_children():
+            child.destroy()
+        page = page_to_goto(self.main_container, self)
+        page.grid(column = 0, row = 0, sticky = "nsew")
 
 class StartPage(ttk.Frame):
     def __init__(self, parent, main_app: MainApp):
@@ -54,7 +42,7 @@ class StartPage(ttk.Frame):
         game_title = ttk.Label(self, text = "Duolango", justify = "center", font = ("TkDefaultFont", 50)) # Title
         game_title.grid(column = 0, row = 0, sticky = "s", columnspan = 3, padx = 5, pady = 5) # Place title
 
-        play_button = ttk.Button(self, text = "Play!", command = lambda : main_app.show_page(GamePage)) # Play button
+        play_button = ttk.Button(self, text = "Play!", command = lambda : main_app.goto_page(GamePage)) # Play button
         play_button.grid(column = 1, row = 1, sticky = "n", padx = 5, pady = 5) # Place play button
 
         # Resizing behavior
@@ -98,8 +86,6 @@ class GameCanvas(tk.Canvas):
         print("asdf")
         self.t.setheading(90)
         self.t.forward(10)
-
-# Deleting & creating pages: https://stackoverflow.com/questions/58292617/how-to-have-multiple-pages-in-tkinter-gui-without-opening-new-windows-using-fu
 
 MainGame = MainApp()
 MainGame.bind("w", lambda w: MainGame.pages[GamePage].game_canvas.move_forward()) # error
