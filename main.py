@@ -76,13 +76,13 @@ class GamePage(ttk.Frame):
         question.grid(column = 0, row = 0)
         
         self.game_canvas = GameCanvas(self)
-        self.game_canvas.grid(column = 2, row = 0, sticky = "nsew", rowspan = 3)
+        self.game_canvas.grid(column = 2, row = 0, sticky = "nsew", rowspan = 3, padx = 0, pady = 0)
 
         info_frame = ttk.Frame(self)
         info_frame.grid(column = 0, row = 2, sticky = "nsew")
 
-        ttk.Separator(self, orient = "horizontal").grid(column = 0, row = 1, sticky = "ew")
-        ttk.Separator(self, orient = "vertical").grid(column = 1, row = 0, rowspan = 3, sticky = "ns")
+        ttk.Separator(self, orient = "horizontal").grid(column = 0, row = 1, sticky = "ew", pady = 0)
+        ttk.Separator(self, orient = "vertical").grid(column = 1, row = 0, rowspan = 3, sticky = "ns", padx = 0)
 
         self.columnconfigure(0, weight = 4)
         self.columnconfigure(2, weight = 5)
@@ -96,7 +96,10 @@ class GameCanvas(tk.Canvas):
     def __init__(self, parent):
         super().__init__(parent, borderwidth = -2) # Initialize GameCanvas as a child class of tk.Canvas
         self.t = turtle.RawTurtle(self) # Initialize a RawTurtle object as a child of GameCanvas
+        self.configure(bg = "gray")
+        self.t.color("white")
         self.t.penup()
+        self.t.speed(0)
         self.pressed_keys = {"w" : False, "d" : False, "s" : False, "a" : False}
             
     def move(self, pressed_key):
