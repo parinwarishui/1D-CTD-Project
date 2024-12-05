@@ -41,7 +41,7 @@ class MainApp(tk.Tk):
 
     def bind_movement_keys(self):
         self.bind("<KeyPress>", lambda event : self.page.game_canvas.move(event.keysym))
-        self.bind("<KeyRelease", lambda event : self.page.game_canvas.remove_released_keys(event.keysm))
+        self.bind("<KeyRelease>", lambda event : self.page.game_canvas.remove_released_keys(event.keysym))
 
 class StartPage(ttk.Frame):
     def __init__(self, parent, main_app: MainApp):
@@ -101,7 +101,6 @@ class GameCanvas(tk.Canvas):
         
         if True not in self.pressed_keys.values():
             return
-
         if self.pressed_keys["w"] and self.pressed_keys["d"]:
             self.t.setheading(45)
         elif self.pressed_keys["w"] and self.pressed_keys["a"]:
@@ -118,7 +117,6 @@ class GameCanvas(tk.Canvas):
             self.t.setheading(270)
         elif self.pressed_keys["d"]:
             self.t.setheading(0)
-
         self.t.forward(10)
         return
     
