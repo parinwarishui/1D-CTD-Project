@@ -21,31 +21,27 @@ class MainApp(tk.Tk):
         self.rowconfigure(0, weight=1)
         self.columnconfigure(0, weight = 1)
 
-        main_container = ttk.Frame(self) # Create a container frame with MainApp as parent
-        main_container.grid(column = 0, row = 0, sticky = "nsew") 
+        self.main_container = ttk.Frame(self) # Create a container frame with MainApp as parent
+        self.main_container.grid(column = 0, row = 0, sticky = "nsew") 
         # Put main_container in a MainApp grid (row 0, col 0), sticky N S E W means centered in grid
-        main_container.rowconfigure(0, weight = 1) # Configure main_container grid of col 0 with weight 1
-        main_container.columnconfigure(0, weight = 1) # Configure main_container grid of row 0 with weight 1
+        self.main_container.rowconfigure(0, weight = 1) # Configure main_container grid of col 0 with weight 1
+        self.main_container.columnconfigure(0, weight = 1) # Configure main_container grid of row 0 with weight 1
 
-        self.pages = self.get_all_pages(main_container) # Insert all pages into a dictionary main_container is passed by reference
-        self.show_page(StartPage) # Start the program by displaying StartPage
-    
-    def get_all_pages(self, main_container) -> dict: # Function to get all pages and return as dict
-        list_of_pages = (StartPage, GamePage) # Add page classes here
-        pages = {} # Initialize an empty dict to store pages
+        self.goto_page(StartPage)
+        #self.bind("w", lambda e :self.page.game_canvas.move_forward())
+        #print(isinstance(self.page, StartPage))
 
-        for page in list_of_pages:
-            frame = page(main_container, self) # Initializes each page. main_container and MainApp are passed as arguments. 
-            pages[page] = frame # The initialized pages are added to pages dictionary with the class objects as their keys
-            frame.grid(row = 0, column = 0, sticky = "nsew") # Places each page in main_container grid
-        
-        return pages
+    def goto_page(self, page_to_goto):
+        for child in self.main_container.winfo_children():
+            child.destroy()
+        self.page = page_to_goto(self.main_container, self)
+        self.page.grid(column = 0, row = 0, sticky = "nsew")
+        if isinstance(self.page, GamePage):
+            self.bind_movement_keys()
 
-    def show_page(self, page:ttk.Frame) -> None:
-        frame = self.pages[page] # Get the page value (the frame used to display the page)
-        frame.tkraise() # Raise the frame so that it's displayed
-        return
-
+    def bind_movement_keys(self):
+        self.bind("<KeyPress>", lambda event : self.page.game_canvas.move(event.keysym))
+        self.bind("<KeyRelease", lambda event : self.page.game_canvas.remove_released_keys(event.keysm))
 
 class StartPage(ttk.Frame):
     def __init__(self, parent, main_app: MainApp):
@@ -54,10 +50,9 @@ class StartPage(ttk.Frame):
         game_title = ttk.Label(self, text = "Duolango", justify = "center", font = ("TkDefaultFont", 50)) # Title
         game_title.grid(column = 0, row = 0, sticky = "s", columnspan = 3, padx = 5, pady = 5) # Place title
 
-        play_button = ttk.Button(self, text = "Play!", command = lambda : main_app.show_page(GamePage)) # Play button
+        play_button = ttk.Button(self, text = "Play!", command = lambda : main_app.goto_page(GamePage)) # Play button
         play_button.grid(column = 1, row = 1, sticky = "n", padx = 5, pady = 5) # Place play button
 
-        # Resizing behavior
         self.columnconfigure(0, weight = 1)
         self.columnconfigure(2, weight = 1)
         self.rowconfigure(0, weight = 1)
@@ -70,8 +65,8 @@ class GamePage(ttk.Frame):
         question = ttk.Label(self, text = "qn", justify = "center", font = ("TkDefaultFont", 30))
         question.grid(column = 0, row = 0)
         
-        game_canvas = GameCanvas(self)
-        game_canvas.grid(column = 2, row = 0, sticky = "nsew", rowspan = 3)
+        self.game_canvas = GameCanvas(self)
+        self.game_canvas.grid(column = 2, row = 0, sticky = "nsew", rowspan = 3)
 
         info_frame = ttk.Frame(self)
         info_frame.grid(column = 0, row = 2, sticky = "nsew")
@@ -92,15 +87,47 @@ class GameCanvas(tk.Canvas):
         super().__init__(parent, borderwidth = -2) # Initialize GameCanvas as a child class of tk.Canvas
         self.t = turtle.RawTurtle(self) # Initialize a RawTurtle object as a child of GameCanvas
         self.t.penup()
-        self.focus_set()
-    
-    def move_forward(self):
-        print("asdf")
-        self.t.setheading(90)
-        self.t.forward(10)
+        self.pressed_keys = {"w" : False, "d" : False, "s" : False, "a" : False}
+            
+    def move(self, pressed_key):
+        if pressed_key not in self.pressed_keys:
+            return
+        self.pressed_keys[pressed_key] = True
 
-# Deleting & creating pages: https://stackoverflow.com/questions/58292617/how-to-have-multiple-pages-in-tkinter-gui-without-opening-new-windows-using-fu
+        if self.pressed_keys["w"] and self.pressed_keys["s"]:
+            self.pressed_keys["w"], self.pressed_keys["s"] = False, False
+        if self.pressed_keys["d"] and self.pressed_keys["a"]:
+            self.pressed_keys["d"], self.pressed_keys["a"] = False, False
+        
+        if True not in self.pressed_keys.values():
+            return
+
+        if self.pressed_keys["w"] and self.pressed_keys["d"]:
+            self.t.setheading(45)
+        elif self.pressed_keys["w"] and self.pressed_keys["a"]:
+            self.t.setheading(135)
+        elif self.pressed_keys["s"] and self.pressed_keys["a"]:
+            self.t.setheading(225)
+        elif self.pressed_keys["s"] and self.pressed_keys["d"]:
+            self.t.setheading(315)
+        elif self.pressed_keys["w"]:
+            self.t.setheading(90)
+        elif self.pressed_keys["a"]:
+            self.t.setheading(180)
+        elif self.pressed_keys["s"]:
+            self.t.setheading(270)
+        elif self.pressed_keys["d"]:
+            self.t.setheading(0)
+
+        self.t.forward(10)
+        return
+    
+    def remove_released_keys(self, released_key):
+        if released_key not in self.pressed_keys:
+            return
+        self.pressed_keys[released_key] = False
+        return
 
 MainGame = MainApp()
-MainGame.bind("w", lambda w: MainGame.pages[GamePage].game_canvas.move_forward()) # error
+#MainGame.bind("w", lambda w: MainGame.pages[GamePage].game_canvas.move_forward()) # error
 MainGame.mainloop()
