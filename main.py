@@ -17,7 +17,8 @@ class MainApp(tk.Tk):
     def __init__(self):
         super().__init__() # Initialize MainApp as a child class of tk.Tk
         self.title("Duolango") # Set window title
-        self.geometry('960x540')
+        self.geometry('540x540')
+        self.resizable(False, False)
         self.rowconfigure(0, weight=1)
         self.columnconfigure(0, weight = 1)
 
@@ -36,16 +37,24 @@ class MainApp(tk.Tk):
             child.destroy()
         self.page = page_to_goto(self.main_container, self)
         self.page.grid(column = 0, row = 0, sticky = "nsew")
+        self.geometry(self.page.window_size)
         if isinstance(self.page, GamePage):
             self.bind_movement_keys()
+        else:
+            self.unbind_movement_keys()
 
     def bind_movement_keys(self):
         self.bind("<KeyPress>", lambda event : self.page.game_canvas.move(event.keysym))
         self.bind("<KeyRelease>", lambda event : self.page.game_canvas.remove_released_keys(event.keysym))
+    
+    def unbind_movement_keys(self):
+        self.unbind("<KeyPress")
+        self.unbind("<KeyRelease>")
 
 class StartPage(ttk.Frame):
     def __init__(self, parent, main_app: MainApp):
         super().__init__(parent, relief="solid") # Initialize StartPage as a child class of ttk.Frame
+        self.window_size = "540x540"
 
         game_title = ttk.Label(self, text = "Duolango", justify = "center", font = ("TkDefaultFont", 50)) # Title
         game_title.grid(column = 0, row = 0, sticky = "s", columnspan = 3, padx = 5, pady = 5) # Place title
@@ -61,6 +70,7 @@ class StartPage(ttk.Frame):
 class GamePage(ttk.Frame):
     def __init__(self, parent, main_app: MainApp):
         super().__init__(parent, relief = "solid") # Initialize GamePage as a child class of ttk.Frame
+        self.window_size = "960x540"
 
         question = ttk.Label(self, text = "qn", justify = "center", font = ("TkDefaultFont", 30))
         question.grid(column = 0, row = 0)
@@ -93,14 +103,7 @@ class GameCanvas(tk.Canvas):
         if pressed_key not in self.pressed_keys:
             return
         self.pressed_keys[pressed_key] = True
-
-        if self.pressed_keys["w"] and self.pressed_keys["s"]:
-            self.pressed_keys["w"], self.pressed_keys["s"] = False, False
-        if self.pressed_keys["d"] and self.pressed_keys["a"]:
-            self.pressed_keys["d"], self.pressed_keys["a"] = False, False
         
-        if True not in self.pressed_keys.values():
-            return
         if self.pressed_keys["w"] and self.pressed_keys["d"]:
             self.t.setheading(45)
         elif self.pressed_keys["w"] and self.pressed_keys["a"]:
@@ -127,5 +130,4 @@ class GameCanvas(tk.Canvas):
         return
 
 MainGame = MainApp()
-#MainGame.bind("w", lambda w: MainGame.pages[GamePage].game_canvas.move_forward()) # error
 MainGame.mainloop()
