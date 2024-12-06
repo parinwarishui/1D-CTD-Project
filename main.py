@@ -42,7 +42,7 @@ class MainApp(tk.Tk):
             self.unbind_movement_keys()
 
     def bind_movement_keys(self):
-        self.bind("<KeyPress>", lambda event : self.page.game_canvas.move(event.keysym, self.page))
+        self.bind("<KeyPress>", lambda event : self.page.game_canvas.move(event.keysym, self.page, self))
         self.bind("<KeyRelease>", lambda event : self.page.game_canvas.remove_released_keys(event.keysym))
     
     def unbind_movement_keys(self):
@@ -110,13 +110,14 @@ class GameCanvas(tk.Canvas):
         self.canvas_height = 540
         # Initialize GameCanvas as a child class of tk.Canvas
         super().__init__(parent, border = 0, highlightthickness = 0, 
-                         width = self.canvas_width-120, height = self.canvas_height) 
+                         width = self.canvas_width-80, height = self.canvas_height) 
         self.configure(bg = "black")
+        self.screen = turtle.TurtleScreen(self)
         
         self.init_game()
 
     def init_game(self):
-        self.t = turtle.RawTurtle(self) # Initialize a RawTurtle object as a child of GameCanvas
+        self.t = turtle.RawTurtle(self.screen) # Initialize a RawTurtle object as a child of GameCanvas
         self.configure(bg = "black")
 
         self.configure(scrollregion = (0, int(self.__getitem__("height")), int(self.__getitem__("width")), 0))
@@ -130,14 +131,14 @@ class GameCanvas(tk.Canvas):
         self.textbox_positions = [(80, -50), (self.canvas_width-80, -50), (80, 50-self.canvas_height), (self.canvas_width-80, 50-self.canvas_height)]
         self.textboxes = []
         for pos in self.textbox_positions: # Initialize the text boxes
-            textbox = turtle.RawTurtle(self)
+            textbox = turtle.RawTurtle(self.screen)
             textbox.penup()
             textbox.color("white")
             textbox.speed(0)
             textbox.hideturtle()
             textbox.goto(pos)
             self.textboxes.append(textbox)
-        self.question_display = turtle.RawTurtle(self)
+        self.question_display = turtle.RawTurtle(self.screen)
         self.question_display.hideturtle()
         self.question_display.penup()
         self.question_display.color("white")
@@ -161,7 +162,7 @@ class GameCanvas(tk.Canvas):
 
         self.show_questions()
 
-    def move(self, pressed_key, parent):
+    def move(self, pressed_key, parent, main_app):
         if pressed_key not in self.pressed_keys:
             return
         self.pressed_keys[pressed_key] = True
@@ -186,7 +187,7 @@ class GameCanvas(tk.Canvas):
         print(int(self.t.xcor()), int(self.t.ycor()))
 
         self.boundary_check()
-        self.collision_check(parent)
+        self.collision_check(parent, main_app)
         return
     
     def remove_released_keys(self, released_key):
@@ -205,7 +206,7 @@ class GameCanvas(tk.Canvas):
         elif self.t.ycor() > 0:
             self.t.sety(0)
     
-    def collision_check(self, parent: GamePage):
+    def collision_check(self, parent: GamePage, main_app: MainApp):
         for box_num, textbox in enumerate(self.textboxes):
             if self.t.distance(textbox) < 60:
                 correct = True if self.options[box_num] == self.question else False
@@ -220,8 +221,11 @@ class GameCanvas(tk.Canvas):
                     self.lives -= 1
                     parent.update_lives(self.lives)
                     if self.lives <= 0:
-                        self.end_game()
+                        self.pressed_keys.clear()
+                        self.end_game(parent, main_app)
+                        return
                 self.init_round()
+                
 
     def get_all_questions(self):
         with open("words_list.txt", 'r', encoding = "utf8") as f: # utf8 encoding is used to handle some characters
@@ -267,8 +271,49 @@ class GameCanvas(tk.Canvas):
         self.border.right(90)
         self.border.forward(int(self.__getitem__("height")))
 
-    def end_game(self):
-        pass
+    def end_game(self, parent: GamePage, main_app: MainApp):
+        self.screen.resetscreen()
+
+        # Turtle dying animation
+        self.t.shape("turtle")
+        self.t.color("green4")
+        self.t.penup()
+        self.t.speed(0)
+        self.t.shapesize(3,3,1)
+        self.t.goto(self.canvas_width/2, -self.canvas_height/2)
+        self.t.setheading(90)
+        self.t.speed(1)
+        self.after(500)
+        self.screen.delay(20)
+        self.t.right(180)
+        self.after(500)
+        self.t.forward(200)
+        self.after(500)
+        self.t.left(90)
+        self.after(500)
+        self.t.color("light grey")
+        self.screen.delay(10) # Return delay to default value
+
+        self.after(1000)
+        ttk.Label(self, text = "You Died!", background = "black", foreground = "white", justify = "center", 
+                  font = ("Comic Sans MS", 50)).place(relx = 0.5, rely = 0.2, anchor = "center")
+        main_app.update()
+        self.after(1000)
+        ttk.Label(self, text = "Your score is {}".format(parent.score.get()), background = "black", foreground = "white", 
+                  justify = "center", font = ("Comic Sans MS", 20)).place(relx = 0.5, rely = 0.35, anchor = "center")
+        main_app.update()
+        self.after(1000)
+        home_button = tk.Button(self, text = "    Home    ", background = "light grey", foreground = "black", 
+                                justify = "center", font = ("Comic Sans MS", 15), relief = "raised", 
+                                command = lambda: main_app.goto_page(StartPage))
+        home_button.place(relx = 0.4, rely = 0.5, anchor = "center")
+        main_app.update()
+        self.after(500)
+        again_button = tk.Button(self, text = " Play Again ", background = "light grey", foreground = "black", 
+                                justify = "center", font = ("Comic Sans MS", 15), relief = "raised", 
+                                command = lambda: main_app.goto_page(GamePage))
+        again_button.place(relx = 0.6, rely = 0.5, anchor = "center")
+        main_app.update()
 
 MainGame = MainApp()
 MainGame.mainloop()
