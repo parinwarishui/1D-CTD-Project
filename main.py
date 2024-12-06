@@ -34,11 +34,18 @@ class MainApp(tk.Tk):
         for child in self.main_container.winfo_children():
             child.destroy()
         self.page = target_page(self.main_container, self)
+        print(type(self.page))
         self.page.grid(column = 0, row = 0, sticky = "nsew", padx = 0, pady = 0)
-        self.geometry(self.page.window_size)
+
+        x = int(self.winfo_screenwidth()/2 - self.page.window_size[0]/2)
+        y = int(self.winfo_screenheight()/2 - self.page.window_size[1]/2 - 32)
+        self.geometry("{}x{}+{}+{}".format(self.page.window_size[0], self.page.window_size[1], x, y))
+
         if isinstance(self.page, GamePage):
+            print("asdf")
             self.bind_movement_keys()
         else:
+            print("zdcx")
             self.unbind_movement_keys()
 
     def bind_movement_keys(self):
@@ -46,13 +53,13 @@ class MainApp(tk.Tk):
         self.bind("<KeyRelease>", lambda event : self.page.game_canvas.remove_released_keys(event.keysym))
     
     def unbind_movement_keys(self):
-        self.unbind("<KeyPress")
+        self.unbind("<KeyPress>")
         self.unbind("<KeyRelease>")
 
 class StartPage(tk.Frame):
     def __init__(self, parent, main_app: MainApp):
         super().__init__(parent, relief="solid") # Initialize StartPage as a child class of ttk.Frame
-        self.window_size = "540x540"
+        self.window_size = (540, 540)
 
         game_title = ttk.Label(self, text = "Duolango", justify = "center", font = ("TkDefaultFont", 50)) # Title
         game_title.grid(column = 0, row = 0, sticky = "s", columnspan = 3, padx = 5, pady = 5) # Place title
@@ -68,7 +75,7 @@ class StartPage(tk.Frame):
 class GamePage(ttk.Frame):
     def __init__(self, parent, main_app: MainApp):
         super().__init__(parent, relief = "solid",borderwidth = 0) # Initialize GamePage as a child class of ttk.Frame
-        self.window_size = "960x540"
+        self.window_size = (960,540)
 
         self.score = tk.IntVar(self, 0)
         question = ttk.Label(self, textvariable = self.score, justify = "center", font = ("TkDefaultFont", 30))
