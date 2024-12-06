@@ -42,7 +42,7 @@ class MainApp(tk.Tk):
             self.unbind_movement_keys()
 
     def bind_movement_keys(self):
-        self.bind("<KeyPress>", lambda event : self.page.game_canvas.move(event.keysym))
+        self.bind("<KeyPress>", lambda event : self.page.game_canvas.move(event.keysym, self.page))
         self.bind("<KeyRelease>", lambda event : self.page.game_canvas.remove_released_keys(event.keysym))
     
     def unbind_movement_keys(self):
@@ -70,46 +70,98 @@ class GamePage(ttk.Frame):
         super().__init__(parent, relief = "solid",borderwidth = 0) # Initialize GamePage as a child class of ttk.Frame
         self.window_size = "960x540"
 
-        question = ttk.Label(self, text = "qn", justify = "center", font = ("TkDefaultFont", 30))
+        self.score = tk.IntVar(self, 0)
+        question = ttk.Label(self, textvariable = self.score, justify = "center", font = ("TkDefaultFont", 30))
         question.grid(column = 0, row = 0)
+        question.grid_propagate(0) # Keep size constant
         
         self.game_canvas = GameCanvas(self, main_app)
         self.game_canvas.grid(column = 2, row = 0, sticky = "nsew", rowspan = 3, padx = 0, pady = 0)
+        self.game_canvas.grid_propagate(0)
 
-        info_frame = tk.Frame(self)
-        info_frame.grid(column = 0, row = 2, sticky = "nsew")
+        self.lives_images = {3:"3hearts.png", 2: "2hearts.png", 1: "1hearts.png", 0: "0hearts.png"}
+        self.lives_image = tk.PhotoImage(file = self.lives_images[3])
+        self.lives_label = ttk.Label(self, image = self.lives_image, justify = "center")
+        self.lives_label.grid(column = 0, row = 2)
 
         ttk.Separator(self, orient = "horizontal").grid(column = 0, row = 1, sticky = "ew", pady = 0)
         ttk.Separator(self, orient = "vertical").grid(column = 1, row = 0, rowspan = 3, sticky = "ns", padx = 0)
 
-        self.columnconfigure(0, weight = 4)
-        self.columnconfigure(2, weight = 5)
-        self.rowconfigure(0, weight = 3)
+        self.columnconfigure(0, weight = 1)
+        self.columnconfigure(2, weight = 1)
+        self.rowconfigure(0, weight = 5)
         self.rowconfigure(2, weight = 2)
-        
+    
+    def update_score(self):
+        self.score.set(self.score.get() + random.randint(1, 3)*10)
+        return
+
+    def update_lives(self, lives):
+        self.lives_image = tk.PhotoImage(file = self.lives_images[lives])
+        self.lives_label.config(image = self.lives_image)
+        return
+
 
 # Resizing: https://stackoverflow.com/questions/22835289/how-to-get-tkinter-canvas-to-dynamically-resize-to-window-width
 
 class GameCanvas(tk.Canvas):
     def __init__(self, parent, main_app:MainApp):
-        super().__init__(parent, border = 0, highlightthickness = 0) # Initialize GameCanvas as a child class of tk.Canvas
+        self.canvas_width = 670
+        self.canvas_height = 540
+        # Initialize GameCanvas as a child class of tk.Canvas
+        super().__init__(parent, border = 0, highlightthickness = 0, 
+                         width = self.canvas_width-120, height = self.canvas_height) 
+        self.configure(bg = "black")
+        
+        self.init_game()
+
+    def init_game(self):
         self.t = turtle.RawTurtle(self) # Initialize a RawTurtle object as a child of GameCanvas
         self.configure(bg = "black")
 
         self.configure(scrollregion = (0, int(self.__getitem__("height")), int(self.__getitem__("width")), 0))
                                     #  Left, Top, Right, Bottom
-
         self.t.shape("turtle")
-        self.t.color("white")
+        self.t.color("green4")
         self.t.penup()
         self.t.speed(0)
         self.t.shapesize(3,3,1)
 
-        self.pressed_keys = {"w" : False, "d" : False, "s" : False, "a" : False} # Initializing keys for movement
-        self.draw_border()
+        self.textbox_positions = [(80, -50), (self.canvas_width-80, -50), (80, 50-self.canvas_height), (self.canvas_width-80, 50-self.canvas_height)]
+        self.textboxes = []
+        for pos in self.textbox_positions: # Initialize the text boxes
+            textbox = turtle.RawTurtle(self)
+            textbox.penup()
+            textbox.color("white")
+            textbox.speed(0)
+            textbox.hideturtle()
+            textbox.goto(pos)
+            self.textboxes.append(textbox)
+        self.question_display = turtle.RawTurtle(self)
+        self.question_display.hideturtle()
+        self.question_display.penup()
+        self.question_display.color("white")
+        self.question_display.goto(self.canvas_width/2, 75-self.canvas_height/2)
 
-            
-    def move(self, pressed_key):
+        self.lives = 3
+        self.pressed_keys = {"w" : False, "d" : False, "s" : False, "a" : False} # Initializing keys for movement
+        # self.draw_border()
+        self.questions_list = self.get_all_questions()
+        self.available_questions = deepcopy(self.questions_list)
+        random.shuffle(self.available_questions)
+        
+        self.init_round()
+
+    def init_round(self):
+        self.t.goto(self.canvas_width/2, -self.canvas_height/2) # Centerize
+        self.t.setheading(90) # Facing upwards
+        self.load_questions()
+        self.question_display.clear()        
+        self.question_display.write(self.question["question"], align = "center", font=("Arial", 15, "bold"))
+
+        self.show_questions()
+
+    def move(self, pressed_key, parent):
         if pressed_key not in self.pressed_keys:
             return
         self.pressed_keys[pressed_key] = True
@@ -134,6 +186,7 @@ class GameCanvas(tk.Canvas):
         print(int(self.t.xcor()), int(self.t.ycor()))
 
         self.boundary_check()
+        self.collision_check(parent)
         return
     
     def remove_released_keys(self, released_key):
@@ -143,19 +196,63 @@ class GameCanvas(tk.Canvas):
         return
 
     def boundary_check(self):
-        canvas_width = 670
-        canvas_height = 540
-        if self.t.xcor() > canvas_width:
-            self.t.setx(canvas_width)
+        if self.t.xcor() > self.canvas_width:
+            self.t.setx(self.canvas_width)
         elif self.t.xcor() < 0:
             self.t.setx(0)
-        if self.t.ycor() < -canvas_height:
-            self.t.sety(-canvas_height)
+        if self.t.ycor() < -self.canvas_height:
+            self.t.sety(-self.canvas_height)
         elif self.t.ycor() > 0:
             self.t.sety(0)
+    
+    def collision_check(self, parent: GamePage):
+        for box_num, textbox in enumerate(self.textboxes):
+            if self.t.distance(textbox) < 60:
+                correct = True if self.options[box_num] == self.question else False
+                #for box_num, (textbox, option) in enumerate(zip(self.textboxes, self.options)):
+                #    textbox.color(("lawn green" if self.options[box_num] == self.question else "red"))
+                #    textbox.clear()
+                #    textbox.write(option["answer"], align = "center", font = ("Arial", 12, "normal"))
+                #self.after(1000)
+                if correct:
+                    parent.update_score()
+                else:
+                    self.lives -= 1
+                    parent.update_lives(self.lives)
+                    if self.lives <= 0:
+                        self.end_game()
+                self.init_round()
+
+    def get_all_questions(self):
+        with open("words_list.txt", 'r', encoding = "utf8") as f: # utf8 encoding is used to handle some characters
+            questions = [dict(zip(("question", "answer"), (line.strip().split(":")))) for line in f if ":" in line]
+        return questions
+
+    def load_questions(self):
+        if len(self.available_questions) <= 0:
+            self.available_questions = deepcopy(self.questions_list)
+            random.shuffle(self.available_questions)
+        self.question = self.available_questions.pop()
+
+        options_count = 0
+        self.options = []
+        possible_options = deepcopy(self.questions_list)
+        random.shuffle(possible_options)
+        while (options_count < 3):
+            possible_option = possible_options.pop()
+            if possible_option != self.question:
+                self.options.append(possible_option)
+                options_count += 1
+        self.options.append(self.question)
+    
+    def show_questions(self):
+        for textbox, option in zip(self.textboxes, self.options):
+            textbox.color("white")
+            textbox.clear()
+            textbox.write(option["answer"], align = "center", font = ("Arial", 12, "normal"))
 
     def draw_border(self):
-        # Animation for the border (Unfinished, will work on it if I have the time)
+        # Animation for the border (Unused, will work on it if I have the time)
         return
         self.border = turtle.RawTurtle(self)
         #self.border.hideturtle()
@@ -169,6 +266,9 @@ class GameCanvas(tk.Canvas):
         self.border.forward(int(self.__getitem__("width")))
         self.border.right(90)
         self.border.forward(int(self.__getitem__("height")))
+
+    def end_game(self):
+        pass
 
 MainGame = MainApp()
 MainGame.mainloop()
