@@ -59,53 +59,18 @@ class StartPage(tk.Frame):
         self.window_size = (540, 540)
 
         game_title = ttk.Label(self, text = "Duolango", justify = "center", font = ("TkDefaultFont", 50)) # Title
-        game_title.grid(column = 0, row = 0, sticky = "s", columnspan = 3, padx = 5, pady = 5) # Place title
+        game_title.grid(column = 0, row = 0, sticky = "s", columnspan = 4, padx = 5, pady = 5) # Place title
 
-        play_button = ttk.Button(self, text = "Play!", command = lambda : main_app.goto_page(GamePage)) # Play button
-        play_button.grid(column = 1, row = 1, sticky = "n", padx = 5, pady = 5) # Place play button
+        play_button = ttk.Button(self, text = "   Play Game   ", command = lambda : main_app.goto_page(GamePage)) # Play button
+        play_button.grid(column = 1, row = 1, sticky = "n", padx = 0, pady = 5) # Place play button
+
+        learn_button = ttk.Button(self, text = " Learning Mode ", command = lambda : main_app.goto_page(InfiniteGamePage)) # Play button
+        learn_button.grid(column = 2, row = 1, sticky = "n", padx = 0, pady = 5) # Place play button
 
         self.columnconfigure(0, weight = 1)
-        self.columnconfigure(2, weight = 1)
+        self.columnconfigure(3, weight = 1)
         self.rowconfigure(0, weight = 1)
         self.rowconfigure(2, weight = 1)
-
-class GamePage(ttk.Frame):
-    def __init__(self, parent, main_app: MainApp):
-        super().__init__(parent, relief = "solid",borderwidth = 0) # Initialize GamePage as a child class of ttk.Frame
-        self.window_size = (960,540)
-
-        self.score = 0
-        self.scoreStr = tk.StringVar(self, "Score: {}".format(self.score))
-        score_label = ttk.Label(self, textvariable = self.scoreStr, justify = "center", font = ("TkDefaultFont", 30))
-        score_label.grid(column = 0, row = 0)
-        #question.grid_propagate(0) # Keep size constant
-        
-        self.game_canvas = GameCanvas(self, main_app)
-        self.game_canvas.grid(column = 2, row = 0, sticky = "nsew", rowspan = 3, padx = 0, pady = 0)
-        #self.game_canvas.grid_propagate(0)
-
-        self.lives_images = {3:"assets/3hearts.png", 2: "assets/2hearts.png", 1: "assets/1hearts.png", 0: "assets/0hearts.png"}
-        self.lives_image = tk.PhotoImage(file = self.lives_images[3])
-        self.lives_label = ttk.Label(self, image = self.lives_image, justify = "center")
-        self.lives_label.grid(column = 0, row = 2)
-
-        ttk.Separator(self, orient = "horizontal").grid(column = 0, row = 1, sticky = "ew", pady = 0)
-        ttk.Separator(self, orient = "vertical").grid(column = 1, row = 0, rowspan = 3, sticky = "ns", padx = 0)
-
-        self.columnconfigure(0, weight = 1)
-        self.columnconfigure(2, weight = 1)
-        self.rowconfigure(0, weight = 5)
-        self.rowconfigure(2, weight = 2)
-    
-    def update_score(self):
-        self.score += random.randint(1, 3)*10
-        self.scoreStr.set("Score: {}".format(self.score))
-        return
-
-    def update_lives(self, lives):
-        self.lives_image = tk.PhotoImage(file = self.lives_images[lives])
-        self.lives_label.config(image = self.lives_image)
-        return
 
 class GameCanvas(tk.Canvas):
     def __init__(self, parent, main_app:MainApp):
@@ -209,7 +174,7 @@ class GameCanvas(tk.Canvas):
         elif self.t.ycor() > 0:
             self.t.sety(0)
     
-    def collision_check(self, parent: GamePage, main_app: MainApp):
+    def collision_check(self, parent, main_app: MainApp):
         for box_num, textbox in enumerate(self.textboxes):
             if self.t.distance(textbox) < 60:
                 self.pressed_keys.clear() # Stop movement
@@ -275,7 +240,7 @@ class GameCanvas(tk.Canvas):
         self.border.right(90)
         self.border.forward(int(self.__getitem__("height")))
 
-    def end_game(self, parent: GamePage, main_app: MainApp):
+    def end_game(self, parent, main_app: MainApp):
         self.screen.resetscreen()
 
         # Turtle dying animation
@@ -318,6 +283,75 @@ class GameCanvas(tk.Canvas):
                                 command = lambda: main_app.goto_page(GamePage))
         again_button.place(relx = 0.6, rely = 0.44, anchor = "center")
         main_app.update()
+
+class InfiniteGameCanvas(GameCanvas):
+    def collision_check(self, parent, main_app: MainApp): # Same as GameCanvas but no punishment if wrong ans
+        for box_num, textbox in enumerate(self.textboxes):
+            if self.t.distance(textbox) < 60:
+                self.pressed_keys.clear() # Stop movement
+                correct = True if self.options[box_num] == self.question else False
+                for box_num, (textbox, option) in enumerate(zip(self.textboxes, self.options)):
+                    textbox.color(("lawn green" if self.options[box_num] == self.question else "red"))
+                    textbox.clear()
+                    textbox.write(option["answer"], align = "center", font = ("Arial", 12, "normal"))
+                self.after(1000)
+                if correct:
+                    parent.update_score()
+                self.init_round()
+
+class GamePage(ttk.Frame):
+    def __init__(self, parent, main_app: MainApp, canvas_type = GameCanvas):
+        super().__init__(parent, relief = "solid",borderwidth = 0) # Initialize GamePage as a child class of ttk.Frame
+        self.window_size = (960,540)
+
+        self.info_frame = ttk.Frame(self)
+        self.info_frame.grid(column = 0, row = 0)
+        self.score = 0
+        self.scoreStr = tk.StringVar(self, "Score: {}".format(self.score))
+        score_label = ttk.Label(self.info_frame, textvariable = self.scoreStr, justify = "center", font = ("TkDefaultFont", 30))
+        score_label.grid(column = 0, row = 1, padx = 0, pady = 0, columnspan = 2)
+        
+        self.game_canvas = canvas_type(self, main_app)
+        self.game_canvas.grid(column = 2, row = 0, sticky = "nsew", rowspan = 3, padx = 0, pady = 0)
+
+        self.lives_images = {3:"assets/3hearts.png", 2: "assets/2hearts.png", 1: "assets/1hearts.png", 0: "assets/0hearts.png"}
+        self.lives_image = tk.PhotoImage(file = self.lives_images[3])
+        self.lives_label = ttk.Label(self, image = self.lives_image, justify = "center")
+        self.lives_label.grid(column = 0, row = 2)
+
+        ttk.Separator(self, orient = "horizontal").grid(column = 0, row = 1, sticky = "ew", pady = 0)
+        ttk.Separator(self, orient = "vertical").grid(column = 1, row = 0, rowspan = 3, sticky = "ns", padx = 0)
+
+        self.columnconfigure(0, weight = 1)
+        self.columnconfigure(2, weight = 1)
+        self.rowconfigure(0, weight = 5)
+        self.rowconfigure(2, weight = 2)
+    
+    def update_score(self):
+        self.score += random.randint(1, 3)*10
+        self.scoreStr.set("Score: {}".format(self.score))
+        return
+
+    def update_lives(self, lives):
+        self.lives_image = tk.PhotoImage(file = self.lives_images[lives])
+        self.lives_label.config(image = self.lives_image)
+        return
+
+class InfiniteGamePage(GamePage):
+    def __init__(self, parent, main_app: MainApp):
+        super().__init__(parent, main_app, canvas_type = InfiniteGameCanvas)
+        self.lives_image = tk.PhotoImage(file = "assets/infhearts.png")
+        self.lives_label.config(image = self.lives_image)
+        
+        self.info_frame.grid(column = 0, row = 0, sticky = "nsew")
+        tk.Button(self.info_frame, text = "Back", background = "light grey", foreground = "black", 
+                                justify = "left", font = ("TkDefaultFont", 10), relief = "ridge", borderwidth = 2, 
+                                command = lambda: main_app.goto_page(StartPage)).grid(column = 0, row = 0, sticky = "nw", padx = 0, pady = 0)
+        self.info_frame.columnconfigure(0, weight = 1)
+        self.info_frame.columnconfigure(1, weight = 1)
+        self.info_frame.rowconfigure(0, weight = 1)
+        self.info_frame.rowconfigure(1, weight = 1)
+        self.info_frame.rowconfigure(2, weight = 1)
 
 
 
