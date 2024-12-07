@@ -34,7 +34,6 @@ class MainApp(tk.Tk):
         for child in self.main_container.winfo_children():
             child.destroy()
         self.page = target_page(self.main_container, self)
-        print(type(self.page))
         self.page.grid(column = 0, row = 0, sticky = "nsew", padx = 0, pady = 0)
 
         x = int(self.winfo_screenwidth()/2 - self.page.window_size[0]/2)
@@ -42,10 +41,8 @@ class MainApp(tk.Tk):
         self.geometry("{}x{}+{}+{}".format(self.page.window_size[0], self.page.window_size[1], x, y))
 
         if isinstance(self.page, GamePage):
-            print("asdf")
             self.bind_movement_keys()
         else:
-            print("zdcx")
             self.unbind_movement_keys()
 
     def bind_movement_keys(self):
@@ -77,16 +74,17 @@ class GamePage(ttk.Frame):
         super().__init__(parent, relief = "solid",borderwidth = 0) # Initialize GamePage as a child class of ttk.Frame
         self.window_size = (960,540)
 
-        self.score = tk.IntVar(self, 0)
-        question = ttk.Label(self, textvariable = self.score, justify = "center", font = ("TkDefaultFont", 30))
-        question.grid(column = 0, row = 0)
-        question.grid_propagate(0) # Keep size constant
+        self.score = 0
+        self.scoreStr = tk.StringVar(self, "Score: {}".format(self.score))
+        score_label = ttk.Label(self, textvariable = self.scoreStr, justify = "center", font = ("TkDefaultFont", 30))
+        score_label.grid(column = 0, row = 0)
+        #question.grid_propagate(0) # Keep size constant
         
         self.game_canvas = GameCanvas(self, main_app)
         self.game_canvas.grid(column = 2, row = 0, sticky = "nsew", rowspan = 3, padx = 0, pady = 0)
-        self.game_canvas.grid_propagate(0)
+        #self.game_canvas.grid_propagate(0)
 
-        self.lives_images = {3:"3hearts.png", 2: "2hearts.png", 1: "1hearts.png", 0: "0hearts.png"}
+        self.lives_images = {3:"assets/3hearts.png", 2: "assets/2hearts.png", 1: "assets/1hearts.png", 0: "assets/0hearts.png"}
         self.lives_image = tk.PhotoImage(file = self.lives_images[3])
         self.lives_label = ttk.Label(self, image = self.lives_image, justify = "center")
         self.lives_label.grid(column = 0, row = 2)
@@ -100,16 +98,14 @@ class GamePage(ttk.Frame):
         self.rowconfigure(2, weight = 2)
     
     def update_score(self):
-        self.score.set(self.score.get() + random.randint(1, 3)*10)
+        self.score += random.randint(1, 3)*10
+        self.scoreStr.set("Score: {}".format(self.score))
         return
 
     def update_lives(self, lives):
         self.lives_image = tk.PhotoImage(file = self.lives_images[lives])
         self.lives_label.config(image = self.lives_image)
         return
-
-
-# Resizing: https://stackoverflow.com/questions/22835289/how-to-get-tkinter-canvas-to-dynamically-resize-to-window-width
 
 class GameCanvas(tk.Canvas):
     def __init__(self, parent, main_app:MainApp):
@@ -119,11 +115,11 @@ class GameCanvas(tk.Canvas):
         super().__init__(parent, border = 0, highlightthickness = 0, 
                          width = self.canvas_width-80, height = self.canvas_height) 
         self.configure(bg = "black")
-        self.screen = turtle.TurtleScreen(self)
         
         self.init_game()
 
     def init_game(self):
+        self.screen = turtle.TurtleScreen(self)
         self.t = turtle.RawTurtle(self.screen) # Initialize a RawTurtle object as a child of GameCanvas
         self.configure(bg = "black")
 
@@ -134,6 +130,7 @@ class GameCanvas(tk.Canvas):
         self.t.penup()
         self.t.speed(0)
         self.t.shapesize(3,3,1)
+        self.pressed_keys = {}
 
         self.textbox_positions = [(80, -50), (self.canvas_width-80, -50), (80, 50-self.canvas_height), (self.canvas_width-80, 50-self.canvas_height)]
         self.textboxes = []
@@ -152,7 +149,6 @@ class GameCanvas(tk.Canvas):
         self.question_display.goto(self.canvas_width/2, 75-self.canvas_height/2)
 
         self.lives = 3
-        self.pressed_keys = {"w" : False, "d" : False, "s" : False, "a" : False} # Initializing keys for movement
         # self.draw_border()
         self.questions_list = self.get_all_questions()
         self.available_questions = deepcopy(self.questions_list)
@@ -166,8 +162,8 @@ class GameCanvas(tk.Canvas):
         self.load_questions()
         self.question_display.clear()        
         self.question_display.write(self.question["question"], align = "center", font=("Arial", 15, "bold"))
-
         self.show_questions()
+        self.pressed_keys = {"w" : False, "d" : False, "s" : False, "a" : False} # Initializing keys for movement
 
     def move(self, pressed_key, parent, main_app):
         if pressed_key not in self.pressed_keys:
@@ -216,26 +212,26 @@ class GameCanvas(tk.Canvas):
     def collision_check(self, parent: GamePage, main_app: MainApp):
         for box_num, textbox in enumerate(self.textboxes):
             if self.t.distance(textbox) < 60:
+                self.pressed_keys.clear() # Stop movement
                 correct = True if self.options[box_num] == self.question else False
-                #for box_num, (textbox, option) in enumerate(zip(self.textboxes, self.options)):
-                #    textbox.color(("lawn green" if self.options[box_num] == self.question else "red"))
-                #    textbox.clear()
-                #    textbox.write(option["answer"], align = "center", font = ("Arial", 12, "normal"))
-                #self.after(1000)
+                for box_num, (textbox, option) in enumerate(zip(self.textboxes, self.options)):
+                    textbox.color(("lawn green" if self.options[box_num] == self.question else "red"))
+                    textbox.clear()
+                    textbox.write(option["answer"], align = "center", font = ("Arial", 12, "normal"))
+                self.after(1000)
                 if correct:
                     parent.update_score()
                 else:
                     self.lives -= 1
                     parent.update_lives(self.lives)
                     if self.lives <= 0:
-                        self.pressed_keys.clear()
                         self.end_game(parent, main_app)
                         return
                 self.init_round()
                 
 
     def get_all_questions(self):
-        with open("words_list.txt", 'r', encoding = "utf8") as f: # utf8 encoding is used to handle some characters
+        with open("assets/words_list.txt", 'r', encoding = "utf8") as f: # utf8 encoding is used to handle some characters
             questions = [dict(zip(("question", "answer"), (line.strip().split(":")))) for line in f if ":" in line]
         return questions
 
@@ -255,6 +251,7 @@ class GameCanvas(tk.Canvas):
                 self.options.append(possible_option)
                 options_count += 1
         self.options.append(self.question)
+        random.shuffle(self.options)
     
     def show_questions(self):
         for textbox, option in zip(self.textboxes, self.options):
@@ -289,10 +286,10 @@ class GameCanvas(tk.Canvas):
         self.t.shapesize(3,3,1)
         self.t.goto(self.canvas_width/2, -self.canvas_height/2)
         self.t.setheading(90)
-        self.t.speed(1)
         self.after(500)
-        self.screen.delay(20)
+        self.t.speed(1)
         self.t.right(180)
+        self.screen.delay(20)
         self.after(500)
         self.t.forward(200)
         self.after(500)
@@ -306,21 +303,23 @@ class GameCanvas(tk.Canvas):
                   font = ("Comic Sans MS", 50)).place(relx = 0.5, rely = 0.2, anchor = "center")
         main_app.update()
         self.after(1000)
-        ttk.Label(self, text = "Your score is {}".format(parent.score.get()), background = "black", foreground = "white", 
-                  justify = "center", font = ("Comic Sans MS", 20)).place(relx = 0.5, rely = 0.35, anchor = "center")
+        ttk.Label(self, text = "Final Score: {}".format(parent.score), background = "black", foreground = "white", 
+                  justify = "center", font = ("Comic Sans MS", 20)).place(relx = 0.5, rely = 0.325, anchor = "center")
         main_app.update()
         self.after(1000)
         home_button = tk.Button(self, text = "    Home    ", background = "light grey", foreground = "black", 
                                 justify = "center", font = ("Comic Sans MS", 15), relief = "raised", 
                                 command = lambda: main_app.goto_page(StartPage))
-        home_button.place(relx = 0.4, rely = 0.5, anchor = "center")
+        home_button.place(relx = 0.4, rely = 0.44, anchor = "center")
         main_app.update()
-        self.after(500)
+        self.after(300)
         again_button = tk.Button(self, text = " Play Again ", background = "light grey", foreground = "black", 
                                 justify = "center", font = ("Comic Sans MS", 15), relief = "raised", 
                                 command = lambda: main_app.goto_page(GamePage))
-        again_button.place(relx = 0.6, rely = 0.5, anchor = "center")
+        again_button.place(relx = 0.6, rely = 0.44, anchor = "center")
         main_app.update()
+
+
 
 MainGame = MainApp()
 MainGame.mainloop()
