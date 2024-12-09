@@ -71,23 +71,34 @@ class StartPage(tk.Frame):
         super().__init__(parent, relief="solid") # Initialize StartPage as a child class of ttk.Frame
         self.window_size = (540, 540)
 
-        game_title = ttk.Label(self, text = "Duolango", justify = "center", font = ("TkDefaultFont", 50)) # Title
-        game_title.grid(column = 0, row = 0, sticky = "s", columnspan = 4, padx = 5, pady = 2) # Place title
+        game_title = ttk.Label(self, text = "Duolango", justify = "center", font = ("Cooper Black", 50)) # Title
+        game_title.grid(column = 0, row = 0, sticky = "s", columnspan = 4, padx = 5, pady = 0) # Place title
 
-        play_button = ttk.Button(self, text = "   Play Game   ", command = lambda : main_app.goto_page(GamePage)) # Play button
-        play_button.grid(column = 1, row = 2, sticky = "n", padx = 0, pady = 5) # Place play button
+        play_button = tk.Button(self, text = "   Play Game   ", command = lambda : main_app.goto_page(GamePage), 
+                                 relief = "raised", font = ("gothic", 11), height = 1) # Play button
+        play_button.grid(column = 1, row = 2, sticky = "n", padx = 2, pady = 5) # Place play button
 
-        learn_button = ttk.Button(self, text = " Learning Mode ", command = lambda : main_app.goto_page(InfiniteGamePage)) # Play button
-        learn_button.grid(column = 2, row = 2, sticky = "n", padx = 0, pady = 5) # Place play button
+        learn_button = tk.Button(self, text = " Learning Mode ", command = lambda : main_app.goto_page(InfiniteGamePage), 
+                                 relief = "raised", font = ("gothic", 11), height = 1) # Play button
+        learn_button.grid(column = 2, row = 2, sticky = "n", padx = 2, pady = 5) # Place play button
         
         self.score_str = tk.StringVar(self, "High Score: {}".format(main_app.high_score))
-        highscore_label = ttk.Label(self, textvariable = self.score_str, justify = "center", font = ("TkDefaultFont", 10))
-        highscore_label.grid(column = 1, row = 1, columnspan = 2, sticky = "n", pady = 5)
+        highscore_label = ttk.Label(self, textvariable = self.score_str, justify = "center", font = ("fixedsys", 13))
+        highscore_label.grid(column = 1, row = 1, columnspan = 2, sticky = "n", pady = 3)
+
+        """
+        home_button = tk.Button(self, text = "    Home    ", background = "light grey", foreground = "black", 
+                                        justify = "center", font = ("Comic Sans MS", 15), relief = "raised", 
+                                        command = lambda: main_app.goto_page(StartPage))
+        """
+        self.language_choice = tk.StringVar()
+        language_combobox = ttk.Combobox(self, textvariable = self.language_choice)
+        language_combobox.grid(column = 1, row = 3, columnspan = 2, pady = 5)
 
         self.columnconfigure(0, weight = 1)
         self.columnconfigure(3, weight = 1)
         self.rowconfigure(0, weight = 1)
-        self.rowconfigure(3, weight = 1)
+        self.rowconfigure(4, weight = 1)
 
 class GameCanvas(tk.Canvas):
     def __init__(self, parent, main_app:MainApp):
@@ -310,8 +321,8 @@ class GamePage(ttk.Frame):
         self.info_frame = ttk.Frame(self)
         self.info_frame.grid(column = 0, row = 0)
         self.score = 0
-        self.scoreStr = tk.StringVar(self, "Score: {}".format(self.score))
-        score_label = ttk.Label(self.info_frame, textvariable = self.scoreStr, justify = "center", font = ("TkDefaultFont", 30))
+        self.scoreStr = tk.StringVar(self, "Score:{}".format(self.score))
+        score_label = ttk.Label(self.info_frame, textvariable = self.scoreStr, justify = "center", font = ("fixedsys", 30))
         score_label.grid(column = 0, row = 1, padx = 0, pady = 0, columnspan = 2)
         
         self.game_canvas = canvas_type(self, main_app)
