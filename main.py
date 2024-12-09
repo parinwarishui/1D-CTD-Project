@@ -9,7 +9,7 @@ import tkinter as tk
 from tkinter import ttk
 import random
 import turtle
-import time
+from os import path
 from copy import deepcopy
 
 # Create tkinter window class
@@ -28,11 +28,13 @@ class MainApp(tk.Tk):
         self.main_container.rowconfigure(0, weight = 1) # Configure main_container grid of col 0 with weight 1
         self.main_container.columnconfigure(0, weight = 1) # Configure main_container grid of row 0 with weight 1
 
+        self.get_high_score()
         self.goto_page(StartPage)
 
-    def goto_page(self, target_page):
+    def goto_page(self, target_page, inf_mode = False):
         for child in self.main_container.winfo_children():
             child.destroy()
+        
         self.page = target_page(self.main_container, self)
         self.page.grid(column = 0, row = 0, sticky = "nsew", padx = 0, pady = 0)
 
@@ -53,27 +55,43 @@ class MainApp(tk.Tk):
         self.unbind("<KeyPress>")
         self.unbind("<KeyRelease>")
 
+    def get_high_score(self):
+        if not path.exists("assets/high_score.txt"):
+           self.high_score = 0
+        else:
+            with open("assets/high_score.txt", "r") as f:
+                high_score_str = f.read()
+                if high_score_str.isdigit():
+                    self.high_score = int(high_score_str)
+                else:
+                    self.high_score = 0
+
 class StartPage(tk.Frame):
     def __init__(self, parent, main_app: MainApp):
         super().__init__(parent, relief="solid") # Initialize StartPage as a child class of ttk.Frame
         self.window_size = (540, 540)
 
         game_title = ttk.Label(self, text = "Duolango", justify = "center", font = ("TkDefaultFont", 50)) # Title
-        game_title.grid(column = 0, row = 0, sticky = "s", columnspan = 4, padx = 5, pady = 5) # Place title
+        game_title.grid(column = 0, row = 0, sticky = "s", columnspan = 4, padx = 5, pady = 2) # Place title
 
         play_button = ttk.Button(self, text = "   Play Game   ", command = lambda : main_app.goto_page(GamePage)) # Play button
-        play_button.grid(column = 1, row = 1, sticky = "n", padx = 0, pady = 5) # Place play button
+        play_button.grid(column = 1, row = 2, sticky = "n", padx = 0, pady = 5) # Place play button
 
         learn_button = ttk.Button(self, text = " Learning Mode ", command = lambda : main_app.goto_page(InfiniteGamePage)) # Play button
-        learn_button.grid(column = 2, row = 1, sticky = "n", padx = 0, pady = 5) # Place play button
+        learn_button.grid(column = 2, row = 2, sticky = "n", padx = 0, pady = 5) # Place play button
+        
+        self.score_str = tk.StringVar(self, "High Score: {}".format(main_app.high_score))
+        highscore_label = ttk.Label(self, textvariable = self.score_str, justify = "center", font = ("TkDefaultFont", 10))
+        highscore_label.grid(column = 1, row = 1, columnspan = 2, sticky = "n", pady = 5)
 
         self.columnconfigure(0, weight = 1)
         self.columnconfigure(3, weight = 1)
         self.rowconfigure(0, weight = 1)
-        self.rowconfigure(2, weight = 1)
+        self.rowconfigure(3, weight = 1)
 
 class GameCanvas(tk.Canvas):
     def __init__(self, parent, main_app:MainApp):
+
         self.canvas_width = 670
         self.canvas_height = 540
         # Initialize GameCanvas as a child class of tk.Canvas
@@ -114,7 +132,6 @@ class GameCanvas(tk.Canvas):
         self.question_display.goto(self.canvas_width/2, 75-self.canvas_height/2)
 
         self.lives = 3
-        # self.draw_border()
         self.questions_list = self.get_all_questions()
         self.available_questions = deepcopy(self.questions_list)
         random.shuffle(self.available_questions)
@@ -152,7 +169,6 @@ class GameCanvas(tk.Canvas):
         elif self.pressed_keys["d"]:
             self.t.setheading(0)
         self.t.forward(10)
-        print(int(self.t.xcor()), int(self.t.ycor()))
 
         self.boundary_check()
         self.collision_check(parent, main_app)
@@ -224,26 +240,12 @@ class GameCanvas(tk.Canvas):
             textbox.clear()
             textbox.write(option["answer"], align = "center", font = ("Arial", 12, "normal"))
 
-    def draw_border(self):
-        # Animation for the border (Unused, will work on it if I have the time)
-        return
-        self.border = turtle.RawTurtle(self)
-        #self.border.hideturtle()
-        self.border.color("white")
-        self.border.penup()
-        self.border.pensize(3)
-        self.border.forward(int(self.__getitem__("width")))
-        self.border.right(90)
-        self.border.forward(int(self.__getitem__("height")))
-        self.border.right(90)
-        self.border.forward(int(self.__getitem__("width")))
-        self.border.right(90)
-        self.border.forward(int(self.__getitem__("height")))
-
     def end_game(self, parent, main_app: MainApp):
-        self.screen.resetscreen()
-
+        if parent.score > main_app.high_score and parent.inf_mode == False:
+            parent.update_highscore(main_app, parent.score)
+        
         # Turtle dying animation
+        self.screen.resetscreen()
         self.t.shape("turtle")
         self.t.color("green4")
         self.t.penup()
@@ -300,9 +302,10 @@ class InfiniteGameCanvas(GameCanvas):
                 self.init_round()
 
 class GamePage(ttk.Frame):
-    def __init__(self, parent, main_app: MainApp, canvas_type = GameCanvas):
+    def __init__(self, parent, main_app: MainApp, canvas_type = GameCanvas, inf_mode = False):
         super().__init__(parent, relief = "solid",borderwidth = 0) # Initialize GamePage as a child class of ttk.Frame
         self.window_size = (960,540)
+        self.inf_mode = inf_mode
 
         self.info_frame = ttk.Frame(self)
         self.info_frame.grid(column = 0, row = 0)
@@ -336,10 +339,16 @@ class GamePage(ttk.Frame):
         self.lives_image = tk.PhotoImage(file = self.lives_images[lives])
         self.lives_label.config(image = self.lives_image)
         return
+    
+    def update_highscore(self, main_app: MainApp, new_high_score):
+        with open("assets/high_score.txt", "w+") as f:
+            f.write(str(new_high_score))
+        main_app.high_score = new_high_score
+
 
 class InfiniteGamePage(GamePage):
     def __init__(self, parent, main_app: MainApp):
-        super().__init__(parent, main_app, canvas_type = InfiniteGameCanvas)
+        super().__init__(parent, main_app, canvas_type = InfiniteGameCanvas, inf_mode = True)
         self.lives_image = tk.PhotoImage(file = "assets/infhearts.png")
         self.lives_label.config(image = self.lives_image)
         
