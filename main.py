@@ -9,7 +9,7 @@ import tkinter as tk
 from tkinter import ttk
 import random
 import turtle
-from os import path
+import os
 from copy import deepcopy
 
 # Create tkinter window class
@@ -31,11 +31,14 @@ class MainApp(tk.Tk):
         self.get_high_score()
         self.goto_page(StartPage)
 
-    def goto_page(self, target_page, inf_mode = False):
+    def goto_page(self, target_page, language = None, inf_mode = False):
         for child in self.main_container.winfo_children():
             child.destroy()
         
-        self.page = target_page(self.main_container, self)
+        if target_page == GamePage or target_page == InfiniteGamePage:
+            self.page = target_page(self.main_container, self, language)
+        else:
+            self.page = target_page(self.main_container, self)
         self.page.grid(column = 0, row = 0, sticky = "nsew", padx = 0, pady = 0)
 
         x = int(self.winfo_screenwidth()/2 - self.page.window_size[0]/2)
@@ -56,7 +59,7 @@ class MainApp(tk.Tk):
         self.unbind("<KeyRelease>")
 
     def get_high_score(self):
-        if not path.exists("assets/high_score.txt"):
+        if not os.path.exists("assets/high_score.txt"): # Checks if high_score.txt exists
            self.high_score = 0
         else:
             with open("assets/high_score.txt", "r") as f:
@@ -74,31 +77,72 @@ class StartPage(tk.Frame):
         game_title = ttk.Label(self, text = "Duolango", justify = "center", font = ("Cooper Black", 50)) # Title
         game_title.grid(column = 0, row = 0, sticky = "s", columnspan = 4, padx = 5, pady = 0) # Place title
 
-        play_button = tk.Button(self, text = "   Play Game   ", command = lambda : main_app.goto_page(GamePage), 
-                                 relief = "raised", font = ("gothic", 11), height = 1) # Play button
-        play_button.grid(column = 1, row = 2, sticky = "n", padx = 2, pady = 5) # Place play button
+        available_languages = os.listdir("words_lists")
+        available_languages.append("Add another language")
+        self.language_choice = tk.StringVar()
+        self.language_combobox = ttk.Combobox(self, textvariable = self.language_choice, state = "readonly", values = available_languages)
+        self.language_combobox.grid(column = 1, row = 3, columnspan = 2, pady = 5)
+        self.language_combobox.bind("<<ComboboxSelected>>", lambda e : choose_language())
 
-        learn_button = tk.Button(self, text = " Learning Mode ", command = lambda : main_app.goto_page(InfiniteGamePage), 
-                                 relief = "raised", font = ("gothic", 11), height = 1) # Play button
-        learn_button.grid(column = 2, row = 2, sticky = "n", padx = 2, pady = 5) # Place play button
+        self.play_button = tk.Button(self, text = "   Play Game   ", command = lambda : main_app.goto_page(GamePage, self.language_choice.get()), 
+                                 relief = "raised", font = ("gothic", 11), height = 1, state = "disabled", 
+                                 background = "gray64", foreground = "gray32") # Play button
+        self.play_button.grid(column = 1, row = 2, sticky = "n", padx = 2, pady = 5) # Place play button
+
+        self.learn_button = tk.Button(self, text = " Learning Mode ", command = lambda : main_app.goto_page(InfiniteGamePage, self.language_choice.get()), 
+                                 relief = "raised", font = ("gothic", 11), height = 1, state = "disabled",
+                                 background = "gray64", foreground = "gray32") # Learning mode button
+        self.learn_button.grid(column = 2, row = 2, sticky = "n", padx = 2, pady = 5) # Place learning mode button
         
         self.score_str = tk.StringVar(self, "High Score: {}".format(main_app.high_score))
         highscore_label = ttk.Label(self, textvariable = self.score_str, justify = "center", font = ("fixedsys", 13))
         highscore_label.grid(column = 1, row = 1, columnspan = 2, sticky = "n", pady = 3)
+        
+        self.refresh_button = tk.Button(self, text = " Refresh ", command = lambda : update_combobox(), 
+                                 relief = "raised", font = ("gothic", 11), height = 1)
 
-        """
-        home_button = tk.Button(self, text = "    Home    ", background = "light grey", foreground = "black", 
-                                        justify = "center", font = ("Comic Sans MS", 15), relief = "raised", 
-                                        command = lambda: main_app.goto_page(StartPage))
-        """
-        self.language_choice = tk.StringVar()
-        language_combobox = ttk.Combobox(self, textvariable = self.language_choice)
-        language_combobox.grid(column = 1, row = 3, columnspan = 2, pady = 5)
 
         self.columnconfigure(0, weight = 1)
         self.columnconfigure(3, weight = 1)
-        self.rowconfigure(0, weight = 1)
-        self.rowconfigure(4, weight = 1)
+        self.rowconfigure(0, weight = 3)
+        self.rowconfigure(5, weight = 4)
+
+        def choose_language():
+            if self.language_choice.get() == "Add another language":
+                self.learn_button["foreground"] = "gray32"
+                self.learn_button["background"] = "gray64"
+                self.learn_button["state"] = "disabled"
+                self.play_button["foreground"] = "gray32"
+                self.play_button["background"] = "gray64"
+                self.play_button["state"] = "disabled"
+                self.refresh_button.grid(column = 1, row = 4, columnspan = 2, pady = 0)
+                
+                with open("words_lists/RenameToLanguageName.txt", "w+") as f:
+                    f.write("Enter your words along with their translations here!\n")
+                    f.write("The syntax for adding words is \nword:translation\n")
+                    f.write("You can also just look at the other pre-made txt files for reference")
+                    f.write("Don't forget to rename this file to whatever name you want for this deck!\n")
+                    f.write("Feel free to remove these instructions after you're done editing\n")
+                main_app.update()
+                self.after(500)
+                script_dir = os.path.dirname(__file__) # Gets directory of main.py file
+                os.startfile(os.path.realpath(os.path.join(script_dir, "words_lists"))) # Opens words_lists folder
+                os.startfile(os.path.join(script_dir, "words_lists/RenameToLanguageName.txt")) # Opens newly made txt file
+
+            else:
+                self.learn_button["foreground"] = "gray3"
+                self.learn_button["background"] = "gray95"
+                self.learn_button["state"] = "normal"
+                self.play_button["foreground"] = "gray3"
+                self.play_button["background"] = "gray95"
+                self.play_button["state"] = "normal"
+                self.refresh_button.grid_forget()
+                
+
+        def update_combobox():
+            available_languages = os.listdir("words_lists")
+            available_languages.append("Add another language")
+            self.language_combobox["values"] = available_languages
 
 class GameCanvas(tk.Canvas):
     def __init__(self, parent, main_app:MainApp):
@@ -110,9 +154,9 @@ class GameCanvas(tk.Canvas):
                          width = self.canvas_width-80, height = self.canvas_height) 
         self.configure(bg = "black")
         
-        self.init_game()
+        self.init_game(parent)
 
-    def init_game(self):
+    def init_game(self, parent):
         self.screen = turtle.TurtleScreen(self)
         self.t = turtle.RawTurtle(self.screen) # Initialize a RawTurtle object as a child of GameCanvas
         self.configure(bg = "black")
@@ -143,7 +187,7 @@ class GameCanvas(tk.Canvas):
         self.question_display.goto(self.canvas_width/2, 75-self.canvas_height/2)
 
         self.lives = 3
-        self.questions_list = self.get_all_questions()
+        self.questions_list = self.get_all_questions(parent)
         self.available_questions = deepcopy(self.questions_list)
         random.shuffle(self.available_questions)
         
@@ -222,9 +266,9 @@ class GameCanvas(tk.Canvas):
                 self.init_round()
                 
 
-    def get_all_questions(self):
-        with open("assets/words_list.txt", 'r', encoding = "utf8") as f: # utf8 encoding is used to handle some characters
-            questions = [dict(zip(("question", "answer"), (line.strip().split(":")))) for line in f if ":" in line]
+    def get_all_questions(self, parent):
+        with open(("words_lists/{}".format(parent.language)), 'r', encoding = "utf8") as f: # utf8 encoding is used to handle some characters
+            questions = [dict(zip(("question", "answer"), map(lambda s:s.strip(), (line.split(":"))))) for line in f if ":" in line]
         return questions
 
     def load_questions(self):
@@ -293,7 +337,7 @@ class GameCanvas(tk.Canvas):
         self.after(300)
         again_button = tk.Button(self, text = " Play Again ", background = "light grey", foreground = "black", 
                                 justify = "center", font = ("Comic Sans MS", 15), relief = "raised", 
-                                command = lambda: main_app.goto_page(GamePage))
+                                command = lambda: main_app.goto_page(GamePage, parent.language))
         again_button.place(relx = 0.6, rely = 0.44, anchor = "center")
         main_app.update()
 
@@ -313,10 +357,11 @@ class InfiniteGameCanvas(GameCanvas):
                 self.init_round()
 
 class GamePage(ttk.Frame):
-    def __init__(self, parent, main_app: MainApp, canvas_type = GameCanvas, inf_mode = False):
+    def __init__(self, parent, main_app: MainApp, language, canvas_type = GameCanvas, inf_mode = False):
         super().__init__(parent, relief = "solid",borderwidth = 0) # Initialize GamePage as a child class of ttk.Frame
         self.window_size = (960,540)
         self.inf_mode = inf_mode
+        self.language = language
 
         self.info_frame = ttk.Frame(self)
         self.info_frame.grid(column = 0, row = 0)
@@ -358,8 +403,8 @@ class GamePage(ttk.Frame):
 
 
 class InfiniteGamePage(GamePage):
-    def __init__(self, parent, main_app: MainApp):
-        super().__init__(parent, main_app, canvas_type = InfiniteGameCanvas, inf_mode = True)
+    def __init__(self, parent, main_app: MainApp, language):
+        super().__init__(parent, main_app, language, canvas_type = InfiniteGameCanvas, inf_mode = True)
         self.lives_image = tk.PhotoImage(file = "assets/infhearts.png")
         self.lives_label.config(image = self.lives_image)
         
@@ -372,8 +417,6 @@ class InfiniteGamePage(GamePage):
         self.info_frame.rowconfigure(0, weight = 1)
         self.info_frame.rowconfigure(1, weight = 1)
         self.info_frame.rowconfigure(2, weight = 1)
-
-
 
 MainGame = MainApp()
 MainGame.mainloop()
