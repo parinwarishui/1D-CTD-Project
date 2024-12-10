@@ -110,7 +110,11 @@ class StartPage(tk.Frame):
         super().__init__(parent, relief="solid") # Initialize StartPage as a child class of ttk.Frame
         self.window_size = (540, 540) # Sets window size for StartPage
 
-        winsound.PlaySound("assets/title.wav", winsound.SND_FILENAME|winsound.SND_ASYNC|winsound.SND_LOOP) # Plays title music
+        winsound.PlaySound("assets/title.wav", winsound.SND_FILENAME|winsound.SND_ASYNC|winsound.SND_LOOP)
+        # Plays title music
+        # SND_FILENAME: Indicates that a sound filename (.wav) is being passed
+        # SND_ASYNC: Returns from function immediately after sound plays (To allow the following code to run)
+        # SND_LOOP: Loops the audio
 
         game_title = ttk.Label(self, text = "Duolango", justify = "center", font = ("Cooper Black", 50), foreground = "green") # Title label
         game_title.grid(column = 0, row = 0, sticky = "s", columnspan = 4, padx = 5, pady = 0) # Place title label
@@ -122,14 +126,16 @@ class StartPage(tk.Frame):
         self.language_combobox.grid(column = 1, row = 3, columnspan = 2, pady = 5) # Places combobox
         self.language_combobox.bind("<<ComboboxSelected>>", lambda e : self.choose_language(main_app)) # Runs choose_language() if a selection is made
 
-        self.play_button = tk.Button(self, text = "   Play Game   ", command = lambda : main_app.goto_page(GamePage, self.language_choice.get()), 
-                                 relief = "raised", font = ("gothic", 11, "bold"), height = 1, state = "disabled", 
-                                 background = "gray64", foreground = "gray32") # Play button
+        self.play_button = tk.Button(self, text = "   Play Game   ", command = lambda : 
+                                     main_app.goto_page(GamePage, self.language_choice.get()), relief = "raised", 
+                                     font = ("gothic", 11, "bold"), height = 1, state = "disabled", 
+                                     background = "gray64", foreground = "gray32") # Play button
         self.play_button.grid(column = 1, row = 2, sticky = "n", padx = 2, pady = 5) # Place play button
 
-        self.learn_button = tk.Button(self, text = " Learning Mode ", command = lambda : main_app.goto_page(InfiniteGamePage, self.language_choice.get()), 
-                                 relief = "raised", font = ("gothic", 11, "bold"), height = 1, state = "disabled",
-                                 background = "gray64", foreground = "gray32") # Learning mode button
+        self.learn_button = tk.Button(self, text = " Learning Mode ", command = lambda : 
+                                      main_app.goto_page(InfiniteGamePage, self.language_choice.get()), relief = "raised", 
+                                      font = ("gothic", 11, "bold"), height = 1, state = "disabled",background = "gray64", 
+                                      foreground = "gray32") # Learning mode button
         self.learn_button.grid(column = 2, row = 2, sticky = "n", padx = 2, pady = 5) # Place learning mode button
         
         self.score_str = tk.StringVar(self, "High Score: {}".format("--")) # Creates a string variable to store high score text
@@ -229,7 +235,7 @@ class GameCanvas(tk.Canvas):
 
         self.textbox_positions = [(90, -50), (self.canvas_width-90, -50), (90, 50-self.canvas_height), 
                                   (self.canvas_width-90, 50-self.canvas_height)] # List of positions for placing options
-        self.textboxes = [] # List to store textbox turtle objects
+        self.textboxes = [] # List to store textbox turtle objects for displaying options
         for pos in self.textbox_positions: # Initialize the text boxes
             textbox = turtle.RawTurtle(self.screen)
             textbox.penup()
@@ -322,55 +328,73 @@ class GameCanvas(tk.Canvas):
         return
     
     def collision_check(self, parent, main_app: MainApp):
-        for box_num, textbox in enumerate(self.textboxes):
-            if self.t.distance(textbox) < 60:
-                self.pressed_keys.clear() # Stop movement
-                correct = True if self.options[box_num] == self.question else False
+        """
+        Checks if turtle collides (or gets close) to an answer
+        This function is called in the move function (whenever the turtle moves)
+        """
+        for box_num, textbox in enumerate(self.textboxes): # Loop through every textbox
+            if self.t.distance(textbox) < 60: # If distance between turtle & textbox < 60
+                self.pressed_keys.clear() # Stop movement (by temporarily removing all keys in self.pressed_keys)
+                correct = True if self.options[box_num] == self.question else False # Check if answer is correct
                 
-                if not correct:
-                    self.lives -= 1
-                    parent.update_lives(self.lives)
-                    if self.lives <= 0:
-                        self.end_game(parent, main_app)
-                        return
-                else:
-                    parent.update_score()
-
+                # Redraw all textboxes with colors depending which option is the correct option
                 for box_num, (textbox, option) in enumerate(zip(self.textboxes, self.options)):
                     textbox.color(("lawn green" if self.options[box_num] == self.question else "red"))
                     textbox.clear()
                     textbox.write(option["answer"], align = "center", font = ("Arial", 12, "normal"))
+                self.after(1000) # Pause to let the player read
 
-                self.after(1000)
-                self.init_round()
-        return
+                if not correct:
+                    self.lives -= 1 # Reduce life count
+                    parent.update_lives(self.lives) # call update_lives() method of GamePage
+                    if self.lives <= 0: # If out of lives
+                        self.end_game(parent, main_app) # Run the end_game function to end the game
+                        return # Cut off here to prevent the next round being initialized
+                else:
+                    parent.update_score() # Run the update_score() method of GamePage
                 
-
+                self.init_round() # Initialize the next round
+        return
+        
     def get_all_questions(self, parent):
-        with open(("words_lists/{}".format(parent.language)), 'r', encoding = "utf8") as f: # utf8 encoding is used to handle some characters
-            questions = [dict(zip(("question", "answer"), map(lambda s:s.strip(), (line.split(":"))))) for line in f if ":" in line and line[0] != "#"]
-        return questions
+        '''Function to get all the questions in the selected txt file'''
+        with open(("words_lists/{}".format(parent.language)), 'r', encoding = "utf8") as f: 
+            # Open the txt file of specificed language in read mode, store 
+            # utf8 encoding is used to handle some characters
+
+            questions = [dict(zip(("question", "answer"), map(lambda s:s.strip(), (line.split(":"))))) 
+                         for line in f if ":" in line and line[0] != "#"]
+            # For line in f, 
+            # If there is a colon in line AND line does not start with a hashtag, 
+            # Split the line by colon
+            # Strip both elements in the newly split line 
+            # make a dictionary with format: question = first element, answer = second element
+
+        return questions # Returns the questions dictionary to be used
 
     def load_questions(self):
-        if len(self.available_questions) <= 0:
-            self.available_questions = deepcopy(self.questions_list)
-            random.shuffle(self.available_questions)
-        self.question = self.available_questions.pop()
+        '''Get 1 question:answer pair as the correct answer, get 3 more wrong answers as options'''
+        if len(self.available_questions) <= 0: # If out of available questions
+            self.available_questions = deepcopy(self.questions_list) # Refill the available questions
+            random.shuffle(self.available_questions) # Shuffle the available questions
+        self.question = self.available_questions.pop() # Get the last (shuffled) element for the question, 
+                                                       # remove it from available questions
 
-        options_count = 0
-        self.options = []
-        possible_options = deepcopy(self.questions_list)
-        random.shuffle(possible_options)
-        while (options_count < 3):
-            possible_option = possible_options.pop()
-            if possible_option != self.question:
-                self.options.append(possible_option)
-                options_count += 1
-        self.options.append(self.question)
-        random.shuffle(self.options)
+        options_count = 0 # 0 options selected
+        self.options = [] # Initialize a list for the options to be displayed
+        possible_options = deepcopy(self.questions_list) # Create a new deepcopy for possible_options (to prevent duplicate options)
+        random.shuffle(possible_options) # Shuffle the newly deepcopied list
+        while (options_count < 3): # While less than 3 options have been picked, 
+            possible_option = possible_options.pop() # Pop the last element in the shuffled possible_options list
+            if possible_option != self.question: # If the popped element is NOT the correct question:answer pair, 
+                self.options.append(possible_option) # Append the popped element into the options for this round
+                options_count += 1 # Increase option count by 1
+        self.options.append(self.question) # Append the correct question:answer pair to the options
+        random.shuffle(self.options) # Shuffle the options
         return
     
     def show_questions(self):
+        '''Function to display questions in the canvas'''
         for textbox, option in zip(self.textboxes, self.options):
             textbox.color("white")
             textbox.clear()
@@ -378,13 +402,16 @@ class GameCanvas(tk.Canvas):
         return
 
     def end_game(self, parent, main_app: MainApp):
-        winsound.PlaySound(None, winsound.SND_PURGE)
+        winsound.PlaySound(None, winsound.SND_PURGE) # Stop the game music
 
+        # Run the update_highscore command if: 
+        # 1. The score is greater than the high score of selected language (0 if no score set)
+        # 2. Infinite mode is set to False (To prevent getting high scores from learning mode)
         if parent.score > int(main_app.high_scores.get(parent.language, 0)) and parent.inf_mode == False:
             main_app.update_highscore(parent.score, parent.language)
         
         # Turtle dying animation
-        self.screen.resetscreen()
+        self.screen.resetscreen() # Reset the entire screen
         self.t.shape("turtle")
         self.t.color("green4")
         self.t.penup()
@@ -395,9 +422,9 @@ class GameCanvas(tk.Canvas):
         self.after(500)
         self.t.speed(1)
         self.t.right(180)
-        self.screen.delay(20)
+        self.screen.delay(20) # Increase delay of screen to 20ms (to slow down the animation)
 
-        winsound.PlaySound("assets/death.wav", winsound.SND_FILENAME|winsound.SND_ASYNC|winsound.SND_LOOP)
+        winsound.PlaySound("assets/death.wav", winsound.SND_FILENAME|winsound.SND_ASYNC|winsound.SND_LOOP) # Game over music
 
         self.after(500)
         self.t.forward(200)
@@ -407,30 +434,32 @@ class GameCanvas(tk.Canvas):
         self.t.color("light grey")
         self.screen.delay(10) # Return delay to default value
 
-        self.after(1000)
+        self.after(1000) # self.after() called to add a delay/button pop up effect
         ttk.Label(self, text = "You Lose!", background = "black", foreground = "white", justify = "center", 
-                  font = ("Comic Sans MS", 50)).place(relx = 0.5, rely = 0.2, anchor = "center")
-        main_app.update()
+                  font = ("Comic Sans MS", 50)).place(relx = 0.5, rely = 0.2, anchor = "center") # You lose text
+        main_app.update() # main_app.update() called to update the app display
         self.after(1000)
+        # High score text
         ttk.Label(self, text = "Final Score: {}".format(parent.score), background = "black", foreground = "white", 
                   justify = "center", font = ("Comic Sans MS", 20)).place(relx = 0.5, rely = 0.325, anchor = "center")
         main_app.update()
         self.after(1000)
         home_button = tk.Button(self, text = "    Home    ", background = "light grey", foreground = "black", 
                                 justify = "center", font = ("Comic Sans MS", 15), relief = "raised", 
-                                command = lambda: main_app.goto_page(StartPage))
+                                command = lambda: main_app.goto_page(StartPage)) # Home button
         home_button.place(relx = 0.4, rely = 0.44, anchor = "center")
         main_app.update()
         self.after(300)
         again_button = tk.Button(self, text = " Play Again ", background = "light grey", foreground = "black", 
                                 justify = "center", font = ("Comic Sans MS", 15), relief = "raised", 
-                                command = lambda: main_app.goto_page(GamePage, parent.language))
+                                command = lambda: main_app.goto_page(GamePage, parent.language)) # Play again button
         again_button.place(relx = 0.6, rely = 0.44, anchor = "center")
         main_app.update()
         return
 
 class InfiniteGameCanvas(GameCanvas):
-    def collision_check(self, parent, main_app: MainApp): # Same as GameCanvas but no punishment if wrong ans
+    '''Child of GameCanvas, created when learning mode is selected'''
+    def collision_check(self, parent, main_app: MainApp): # Same as GameCanvas but no punishment if wrong answer
         for box_num, textbox in enumerate(self.textboxes):
             if self.t.distance(textbox) < 60:
                 self.pressed_keys.clear() # Stop movement
@@ -442,32 +471,37 @@ class InfiniteGameCanvas(GameCanvas):
                 self.after(1000)
                 if correct:
                     parent.update_score()
+                # Nothing happens if incorrect
                 self.init_round()
         return
 
 class GamePage(ttk.Frame):
+    '''Main page for game that holds GameCanvas'''
     def __init__(self, parent, main_app: MainApp, language, canvas_type = GameCanvas, inf_mode = False):
         super().__init__(parent, relief = "solid",borderwidth = 0) # Initialize GamePage as a child class of ttk.Frame
-        winsound.PlaySound("assets/game_music.wav", winsound.SND_FILENAME|winsound.SND_ASYNC|winsound.SND_LOOP)
-        self.window_size = (960,540)
-        self.inf_mode = inf_mode
-        self.language = language
+        winsound.PlaySound("assets/game_music.wav", winsound.SND_FILENAME|winsound.SND_ASYNC|winsound.SND_LOOP) # Game music
+        self.window_size = (960,540) # Set window size for the game
+        self.inf_mode = inf_mode # True if learning mode is selected, False by default
+        self.language = language # Language selected in StartPage
 
-        self.info_frame = ttk.Frame(self)
+        self.info_frame = ttk.Frame(self) # Create a new frame to hold information of current game (Score)
         self.info_frame.grid(column = 0, row = 0)
-        self.score = 0
-        self.scoreStr = tk.StringVar(self, "Score:{}".format(self.score))
+        self.score = 0 # Initialize score to 0
+        self.scoreStr = tk.StringVar(self, "Score:{}".format(self.score)) # Create a StringVar using the current score
+        # Label to display score (using the StringVar)
         score_label = ttk.Label(self.info_frame, textvariable = self.scoreStr, justify = "center", font = ("fixedsys", 30))
         score_label.grid(column = 0, row = 1, padx = 0, pady = 0, columnspan = 2)
         
-        self.game_canvas = canvas_type(self, main_app)
+        self.game_canvas = canvas_type(self, main_app) # Create the game canvas (Non-infinite GameCanvas by default)
         self.game_canvas.grid(column = 2, row = 0, sticky = "nsew", rowspan = 3, padx = 0, pady = 0)
 
+        # Live count images
         self.lives_images = {3:"assets/3hearts.png", 2: "assets/2hearts.png", 1: "assets/1hearts.png", 0: "assets/0hearts.png"}
         self.lives_image = tk.PhotoImage(file = self.lives_images[3])
         self.lives_label = ttk.Label(self, image = self.lives_image, justify = "center")
         self.lives_label.grid(column = 0, row = 2)
 
+        # Separators to organize
         ttk.Separator(self, orient = "horizontal").grid(column = 0, row = 1, sticky = "ew", pady = 0)
         ttk.Separator(self, orient = "vertical").grid(column = 1, row = 0, rowspan = 3, sticky = "ns", padx = 0)
 
@@ -477,30 +511,35 @@ class GamePage(ttk.Frame):
         self.rowconfigure(2, weight = 2)
     
     def update_score(self):
-        self.score += random.randint(1, 3)*10
-        self.scoreStr.set("Score: {}".format(self.score))
+        '''Function to update score of current game'''
+        self.score += random.randint(1, 3)*10 # Randomized score increase by 10/20/30
+        self.scoreStr.set("Score: {}".format(self.score)) # Update the ScoreStr
         return
 
     def update_lives(self, lives):
-        self.lives_image = tk.PhotoImage(file = self.lives_images[lives])
-        self.lives_label.config(image = self.lives_image)
+        '''Function to update lives count'''
+        self.lives_image = tk.PhotoImage(file = self.lives_images[lives]) # Assign PhotoImage to self.lives_image, 
+                                                                          # Image depends on amount of lives
+        self.lives_label.config(image = self.lives_image) # Reconfigure lives label
         return
 
 class InfiniteGamePage(GamePage):
+    '''Same as GamePage but calls InfiniteGameCanvas instead of GameCanvas & has grayed out hearts'''
     def __init__(self, parent, main_app: MainApp, language):
         super().__init__(parent, main_app, language, canvas_type = InfiniteGameCanvas, inf_mode = True)
         self.lives_image = tk.PhotoImage(file = "assets/infhearts.png")
         self.lives_label.config(image = self.lives_image)
         
-        self.info_frame.grid(column = 0, row = 0, sticky = "nsew")
-        tk.Button(self.info_frame, text = "Back", background = "light grey", foreground = "black", 
-                                justify = "left", font = ("TkDefaultFont", 10), relief = "ridge", borderwidth = 2, 
-                                command = lambda: main_app.goto_page(StartPage)).grid(column = 0, row = 0, sticky = "nw", padx = 0, pady = 0)
+        self.info_frame.grid(column = 0, row = 0, sticky = "nsew") # Styling to account for back button
+        # Back button since game can't end
+        tk.Button(self.info_frame, text = "Back", background = "light grey", foreground = "black", justify = "left", 
+                  font = ("TkDefaultFont", 10), relief = "ridge", borderwidth = 2, command = lambda: 
+                  main_app.goto_page(StartPage)).grid(column = 0, row = 0, sticky = "nw", padx = 0, pady = 0)
         self.info_frame.columnconfigure(0, weight = 1)
         self.info_frame.columnconfigure(1, weight = 1)
         self.info_frame.rowconfigure(0, weight = 1)
         self.info_frame.rowconfigure(1, weight = 1)
         self.info_frame.rowconfigure(2, weight = 1)
 
-MainGame = MainApp()
-MainGame.mainloop()
+MainGame = MainApp() # Create a MainApp object
+MainGame.mainloop() # Runs the mainloop
