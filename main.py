@@ -72,7 +72,7 @@ class MainApp(tk.Tk):
         self.high_scores[language] = new_high_score
         with open("assets/high_score.txt", "w+") as f:
             for language, score in self.high_scores.items():
-                f.write("{}:{}".format(language, score))
+                f.write("{}:{}\n".format(language, score))
 
 class StartPage(tk.Frame):
     def __init__(self, parent, main_app: MainApp):
