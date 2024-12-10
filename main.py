@@ -11,6 +11,8 @@ import random
 import turtle
 import os
 from copy import deepcopy
+import winsound
+import time
 
 # Create tkinter window class
 class MainApp(tk.Tk):
@@ -32,9 +34,11 @@ class MainApp(tk.Tk):
         self.goto_page(StartPage)
 
     def goto_page(self, target_page, language = None, inf_mode = False):
+        winsound.PlaySound(None, winsound.SND_PURGE)
+        winsound.PlaySound("assets/button_click.wav", winsound.SND_FILENAME|winsound.SND_ASYNC)
         for child in self.main_container.winfo_children():
             child.destroy()
-        
+        time.sleep(0.2)
         if target_page == GamePage or target_page == InfiniteGamePage:
             self.page = target_page(self.main_container, self, language)
         else:
@@ -79,7 +83,9 @@ class StartPage(tk.Frame):
         super().__init__(parent, relief="solid") # Initialize StartPage as a child class of ttk.Frame
         self.window_size = (540, 540)
 
-        game_title = ttk.Label(self, text = "Duolango", justify = "center", font = ("Cooper Black", 50)) # Title
+        winsound.PlaySound("assets/title.wav", winsound.SND_FILENAME|winsound.SND_ASYNC|winsound.SND_LOOP)
+
+        game_title = ttk.Label(self, text = "Duolango", justify = "center", font = ("Cooper Black", 50), foreground = "green") # Title
         game_title.grid(column = 0, row = 0, sticky = "s", columnspan = 4, padx = 5, pady = 0) # Place title
 
         available_languages = os.listdir("words_lists")
@@ -90,12 +96,12 @@ class StartPage(tk.Frame):
         self.language_combobox.bind("<<ComboboxSelected>>", lambda e : choose_language())
 
         self.play_button = tk.Button(self, text = "   Play Game   ", command = lambda : main_app.goto_page(GamePage, self.language_choice.get()), 
-                                 relief = "raised", font = ("gothic", 11), height = 1, state = "disabled", 
+                                 relief = "raised", font = ("gothic", 11, "bold"), height = 1, state = "disabled", 
                                  background = "gray64", foreground = "gray32") # Play button
         self.play_button.grid(column = 1, row = 2, sticky = "n", padx = 2, pady = 5) # Place play button
 
         self.learn_button = tk.Button(self, text = " Learning Mode ", command = lambda : main_app.goto_page(InfiniteGamePage, self.language_choice.get()), 
-                                 relief = "raised", font = ("gothic", 11), height = 1, state = "disabled",
+                                 relief = "raised", font = ("gothic", 11, "bold"), height = 1, state = "disabled",
                                  background = "gray64", foreground = "gray32") # Learning mode button
         self.learn_button.grid(column = 2, row = 2, sticky = "n", padx = 2, pady = 5) # Place learning mode button
         
@@ -260,19 +266,22 @@ class GameCanvas(tk.Canvas):
             if self.t.distance(textbox) < 60:
                 self.pressed_keys.clear() # Stop movement
                 correct = True if self.options[box_num] == self.question else False
-                for box_num, (textbox, option) in enumerate(zip(self.textboxes, self.options)):
-                    textbox.color(("lawn green" if self.options[box_num] == self.question else "red"))
-                    textbox.clear()
-                    textbox.write(option["answer"], align = "center", font = ("Arial", 12, "normal"))
-                self.after(1000)
-                if correct:
-                    parent.update_score()
-                else:
+                
+                if not correct:
                     self.lives -= 1
                     parent.update_lives(self.lives)
                     if self.lives <= 0:
                         self.end_game(parent, main_app)
                         return
+                else:
+                    parent.update_score()
+
+                for box_num, (textbox, option) in enumerate(zip(self.textboxes, self.options)):
+                    textbox.color(("lawn green" if self.options[box_num] == self.question else "red"))
+                    textbox.clear()
+                    textbox.write(option["answer"], align = "center", font = ("Arial", 12, "normal"))
+
+                self.after(1000)
                 self.init_round()
                 
 
@@ -306,7 +315,9 @@ class GameCanvas(tk.Canvas):
             textbox.write(option["answer"], align = "center", font = ("Arial", 12, "normal"))
 
     def end_game(self, parent, main_app: MainApp):
-        if parent.score > main_app.high_scores.get(parent.language, 0) and parent.inf_mode == False:
+        winsound.PlaySound(None, winsound.SND_PURGE)
+
+        if parent.score > int(main_app.high_scores.get(parent.language, 0)) and parent.inf_mode == False:
             main_app.update_highscore(parent.score, parent.language)
         
         # Turtle dying animation
@@ -322,6 +333,9 @@ class GameCanvas(tk.Canvas):
         self.t.speed(1)
         self.t.right(180)
         self.screen.delay(20)
+
+        winsound.PlaySound("assets/death.wav", winsound.SND_FILENAME|winsound.SND_ASYNC|winsound.SND_LOOP)
+
         self.after(500)
         self.t.forward(200)
         self.after(500)
@@ -369,6 +383,7 @@ class InfiniteGameCanvas(GameCanvas):
 class GamePage(ttk.Frame):
     def __init__(self, parent, main_app: MainApp, language, canvas_type = GameCanvas, inf_mode = False):
         super().__init__(parent, relief = "solid",borderwidth = 0) # Initialize GamePage as a child class of ttk.Frame
+        winsound.PlaySound("assets/game_music.wav", winsound.SND_FILENAME|winsound.SND_ASYNC|winsound.SND_LOOP)
         self.window_size = (960,540)
         self.inf_mode = inf_mode
         self.language = language
