@@ -1,10 +1,30 @@
-नमस्ते (Namaste):Greetings
-पर्वत (Parvat):Mountain
-सपना (Sapna):Dream
-चाँदनी (Chaandni):Moonlight
-तारा (Tara):Star
-संगीत (Sangeet):Music
-पक्षी (Pakshi):Bird
-नदी (Nadi):River
-आकाश (Aakash):Sky
-खेत (Khet):Field
+नमस्ते (Namaste):Greetings 
+पर्वत (Parvat):Mountain 
+सपना (Sapna):Dream 
+चाँदनी (Chaandni):Moonlight 
+तारा (Tara):Star 
+संगीत (Sangeet):Music 
+पक्षी (Pakshi):Bird 
+नदी (Nadi):River 
+आकाश (Aakash):Sky 
+खेत (Khet):Field 
+मित्र (Mitra): Friend 
+प्यार (Pyaar): Love 
+पुस्तक (Pustak): Book 
+घर (Ghar): House 
+बच्चा (Baccha): Child 
+सूरज (Sooraj): Sun 
+हवा (Hawa): Wind 
+जल (Jal): Water 
+वन (Van): Forest 
+सपना (Sapna): Dream 
+पुष्प (Pushp): Flower 
+चिड़िया (Chidiya): Sparrow 
+धरती (Dharti): Earth 
+आग (Aag): Fire 
+समुद्र (Samudra): Ocean 
+गाना (Gaana): Song 
+प्रकाश (Prakash): Light 
+छाया (Chhaya): Shadow 
+रंग (Rang): Color 
+नील (Neel): Blue

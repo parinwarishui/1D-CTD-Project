@@ -1,4 +1,4 @@
-สวัสดีครับ (Sawasdee Khrab):Welcome
+สวัสดีครับ (Sawasdee Khrab):Hello
 ภูเขาไฟ (Phu Khao Fai):Volcano
 ดวงจันทร์ (Duang Chan):Moon
 ดอกไม้ (Dok Mai):Flower
@@ -8,3 +8,23 @@
 เพลง (Phleng):Song
 หมู่บ้าน (Moo Ban):Village
 สวน (Suan):Garden
+เพื่อน (Phuean): Friend
+บ้าน (Ban): House
+รัก (Rak): Love
+หนังสือ (Nang Sue): Book
+ภูเขา (Phu Khao): Mountain
+น้ำ (Nam): Water
+ดวงอาทิตย์ (Duang Athit): Sun
+ฝน (Fon): Rain
+ต้นไม้ (Ton Mai): Tree
+ทะเลสาบ (Thale Sap): Lake
+ดาว (Dao): Star
+แม่น้ำ (Mae Nam): River
+เด็ก (Dek): Child
+แสง (Saeng): Light
+ถนน (Thanon): Road
+ลม (Lom): Wind
+ปลา (Pla): Fish
+สวนสาธารณะ (Suan Satharana): Park
+ความฝัน (Khwam Fan): Dream
+รอยยิ้ม (Roy Yim): Smile

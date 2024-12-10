@@ -8,3 +8,23 @@ Kopi:Coffee
 Pohon:Tree
 Lagu:Song
 Gunung:Mountain
+Teman: Friend
+Air: Water
+Cinta: Love
+Kucing: Cat
+Anjing: Dog
+Langit: Sky
+Hujan: Rain
+Bintang: Star
+Matahari: Sun
+Sekolah: School
+Keluarga: Family
+Hati: Heart
+Jalan: Road
+Angin: Wind
+Ikan: Fish
+Senja: Dusk
+Pelangi: Rainbow
+Laut: Sea
+Taman: Park
+Tidur: Sleep

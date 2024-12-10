@@ -1,14 +1,3 @@
-Selamat:Congratulations
-Rumah:House
-Mimpi:Dream
-Buku:Book
-Kebun:Garden
-Pantai:Beach
-Kopi:Coffee
-Pohon:Tree
-Lagu:Song
-Gunung:Mountain
-
 你好 (Nǐ hǎo):Hello
 家 (Jiā):Home
 孩子 (Háizi):Child
@@ -19,19 +8,90 @@ Gunung:Mountain
 工作 (Gōngzuò):Work
 河 (Hé):River
 果实 (Guǒshí):Fruit
+朋友 (Péngyǒu): Friend
+水 (Shuǐ): Water
+爱 (Ài): Love
+书 (Shū): Book
+猫 (Māo): Cat
+狗 (Gǒu): Dog
+山 (Shān): Mountain
+月亮 (Yuèliàng): Moon
+太阳 (Tàiyáng): Sun
+学校 (Xuéxiào): School
+梦 (Mèng): Dream
+雨 (Yǔ): Rain
+心 (Xīn): Heart
+手 (Shǒu): Hand
+笑 (Xiào): Smile
+天空 (Tiānkōng): Sky
+路 (Lù): Road
+家人 (Jiārén): Family
+风 (Fēng): Wind
+鱼 (Yú): Fish
 
-नमस्ते (Namaste):Greetings
-पर्वत (Parvat):Mountain
-सपना (Sapna):Dream
-चाँदनी (Chaandni):Moonlight
-तारा (Tara):Star
-संगीत (Sangeet):Music
-पक्षी (Pakshi):Bird
-नदी (Nadi):River
-आकाश (Aakash):Sky
-खेत (Khet):Field
+नमस्ते (Namaste):Greetings 
+पर्वत (Parvat):Mountain 
+सपना (Sapna):Dream 
+चाँदनी (Chaandni):Moonlight 
+तारा (Tara):Star 
+संगीत (Sangeet):Music 
+पक्षी (Pakshi):Bird 
+नदी (Nadi):River 
+आकाश (Aakash):Sky 
+खेत (Khet):Field 
+मित्र (Mitra): Friend 
+प्यार (Pyaar): Love 
+पुस्तक (Pustak): Book 
+घर (Ghar): House 
+बच्चा (Baccha): Child 
+सूरज (Sooraj): Sun 
+हवा (Hawa): Wind 
+जल (Jal): Water 
+वन (Van): Forest 
+सपना (Sapna): Dream 
+पुष्प (Pushp): Flower 
+चिड़िया (Chidiya): Sparrow 
+धरती (Dharti): Earth 
+आग (Aag): Fire 
+समुद्र (Samudra): Ocean 
+गाना (Gaana): Song 
+प्रकाश (Prakash): Light 
+छाया (Chhaya): Shadow 
+रंग (Rang): Color 
+नील (Neel): Blue
 
-สวัสดีครับ (Sawasdee Khrab):Welcome
+Selamat:Congratulations
+Rumah:House
+Mimpi:Dream
+Buku:Book
+Kebun:Garden
+Pantai:Beach
+Kopi:Coffee
+Pohon:Tree
+Lagu:Song
+Gunung:Mountain
+Teman: Friend
+Air: Water
+Cinta: Love
+Kucing: Cat
+Anjing: Dog
+Langit: Sky
+Hujan: Rain
+Bintang: Star
+Matahari: Sun
+Sekolah: School
+Keluarga: Family
+Hati: Heart
+Jalan: Road
+Angin: Wind
+Ikan: Fish
+Senja: Dusk
+Pelangi: Rainbow
+Laut: Sea
+Taman: Park
+Tidur: Sleep
+
+สวัสดีครับ (Sawasdee Khrab):Hello
 ภูเขาไฟ (Phu Khao Fai):Volcano
 ดวงจันทร์ (Duang Chan):Moon
 ดอกไม้ (Dok Mai):Flower
@@ -41,14 +101,23 @@ Gunung:Mountain
 เพลง (Phleng):Song
 หมู่บ้าน (Moo Ban):Village
 สวน (Suan):Garden
-
-Makanan:Food
-爱 (Ài):Love
-灯 (Dēng):Lamp
-शांति (Shanti):Peace
-ผีเสื้อ (Phee Suea):Butterfly
-Bayangan:Shadow
-Gula:Sugar
-书包 (Shūbāo):Schoolbag
-चाय (Chai):Tea
-เรือ (Ruea):Boat
+เพื่อน (Phuean): Friend
+บ้าน (Ban): House
+รัก (Rak): Love
+หนังสือ (Nang Sue): Book
+ภูเขา (Phu Khao): Mountain
+น้ำ (Nam): Water
+ดวงอาทิตย์ (Duang Athit): Sun
+ฝน (Fon): Rain
+ต้นไม้ (Ton Mai): Tree
+ทะเลสาบ (Thale Sap): Lake
+ดาว (Dao): Star
+แม่น้ำ (Mae Nam): River
+เด็ก (Dek): Child
+แสง (Saeng): Light
+ถนน (Thanon): Road
+ลม (Lom): Wind
+ปลา (Pla): Fish
+สวนสาธารณะ (Suan Satharana): Park
+ความฝัน (Khwam Fan): Dream
+รอยยิ้ม (Roy Yim): Smile

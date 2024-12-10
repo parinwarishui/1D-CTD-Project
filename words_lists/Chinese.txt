@@ -8,3 +8,23 @@
 工作 (Gōngzuò):Work
 河 (Hé):River
 果实 (Guǒshí):Fruit
+朋友 (Péngyǒu): Friend
+水 (Shuǐ): Water
+爱 (Ài): Love
+书 (Shū): Book
+猫 (Māo): Cat
+狗 (Gǒu): Dog
+山 (Shān): Mountain
+月亮 (Yuèliàng): Moon
+太阳 (Tàiyáng): Sun
+学校 (Xuéxiào): School
+梦 (Mèng): Dream
+雨 (Yǔ): Rain
+心 (Xīn): Heart
+手 (Shǒu): Hand
+笑 (Xiào): Smile
+天空 (Tiānkōng): Sky
+路 (Lù): Road
+家人 (Jiārén): Family
+风 (Fēng): Wind
+鱼 (Yú): Fish
