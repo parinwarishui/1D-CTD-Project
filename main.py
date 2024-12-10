@@ -39,6 +39,7 @@ class MainApp(tk.Tk):
             self.page = target_page(self.main_container, self, language)
         else:
             self.page = target_page(self.main_container, self)
+
         self.page.grid(column = 0, row = 0, sticky = "nsew", padx = 0, pady = 0)
 
         x = int(self.winfo_screenwidth()/2 - self.page.window_size[0]/2)
@@ -59,15 +60,19 @@ class MainApp(tk.Tk):
         self.unbind("<KeyRelease>")
 
     def get_high_score(self):
-        if not os.path.exists("assets/high_score.txt"): # Checks if high_score.txt exists
-           self.high_score = 0
-        else:
-            with open("assets/high_score.txt", "r") as f:
-                high_score_str = f.read()
-                if high_score_str.isdigit():
-                    self.high_score = int(high_score_str)
-                else:
-                    self.high_score = 0
+        if not os.path.exists("assets/high_score.txt"): # Checks if high_score.txt does not exist
+           open("assets/high_score.txt", 'a').close # Create a new high_score.txt file
+
+        with open("assets/high_score.txt", "r") as f:
+            lines = f.readlines()
+            # Read all lines and put high scores into language:score format
+            self.high_scores = {lang.strip():score.strip() for lang, score in [line.split(":") for line in lines]}
+
+    def update_highscore(self, new_high_score, language):
+        self.high_scores[language] = new_high_score
+        with open("assets/high_score.txt", "w+") as f:
+            for language, score in self.high_scores.items():
+                f.write("{}:{}".format(language, score))
 
 class StartPage(tk.Frame):
     def __init__(self, parent, main_app: MainApp):
@@ -94,7 +99,7 @@ class StartPage(tk.Frame):
                                  background = "gray64", foreground = "gray32") # Learning mode button
         self.learn_button.grid(column = 2, row = 2, sticky = "n", padx = 2, pady = 5) # Place learning mode button
         
-        self.score_str = tk.StringVar(self, "High Score: {}".format(main_app.high_score))
+        self.score_str = tk.StringVar(self, "High Score: {}".format("--"))
         highscore_label = ttk.Label(self, textvariable = self.score_str, justify = "center", font = ("fixedsys", 13))
         highscore_label.grid(column = 1, row = 1, columnspan = 2, sticky = "n", pady = 3)
         
@@ -116,6 +121,7 @@ class StartPage(tk.Frame):
                 self.play_button["background"] = "gray64"
                 self.play_button["state"] = "disabled"
                 self.refresh_button.grid(column = 1, row = 4, columnspan = 2, pady = 0)
+                self.score_str.set("High Score: {}".format("--"))
                 
                 with open("words_lists/RenameToLanguageName.txt", "w+") as f:
                     f.write("Enter your words along with their translations here!\n")
@@ -137,7 +143,7 @@ class StartPage(tk.Frame):
                 self.play_button["background"] = "gray95"
                 self.play_button["state"] = "normal"
                 self.refresh_button.grid_forget()
-                
+                self.score_str.set("High Score: {}".format(int(main_app.high_scores.get(self.language_choice.get(), 0))))
 
         def update_combobox():
             available_languages = os.listdir("words_lists")
@@ -296,8 +302,8 @@ class GameCanvas(tk.Canvas):
             textbox.write(option["answer"], align = "center", font = ("Arial", 12, "normal"))
 
     def end_game(self, parent, main_app: MainApp):
-        if parent.score > main_app.high_score and parent.inf_mode == False:
-            parent.update_highscore(main_app, parent.score)
+        if parent.score > main_app.high_scores.get(parent.language, 0) and parent.inf_mode == False:
+            main_app.update_highscore(parent.score, parent.language)
         
         # Turtle dying animation
         self.screen.resetscreen()
@@ -395,12 +401,6 @@ class GamePage(ttk.Frame):
         self.lives_image = tk.PhotoImage(file = self.lives_images[lives])
         self.lives_label.config(image = self.lives_image)
         return
-    
-    def update_highscore(self, main_app: MainApp, new_high_score):
-        with open("assets/high_score.txt", "w+") as f:
-            f.write(str(new_high_score))
-        main_app.high_score = new_high_score
-
 
 class InfiniteGamePage(GamePage):
     def __init__(self, parent, main_app: MainApp, language):
