@@ -124,11 +124,15 @@ class StartPage(tk.Frame):
                 self.score_str.set("High Score: {}".format("--"))
                 
                 with open("words_lists/RenameToLanguageName.txt", "w+") as f:
-                    f.write("Enter your words along with their translations here!\n")
-                    f.write("The syntax for adding words is \nword:translation\n")
-                    f.write("You can also just look at the other pre-made txt files for reference")
-                    f.write("Don't forget to rename this file to whatever name you want for this deck!\n")
-                    f.write("Feel free to remove these instructions after you're done editing\n")
+                    f.write("#Enter your words along with their translations here!\n")
+                    f.write("#You can look at the other pre-made txt files for reference\n")
+                    f.write("#Don't forget to rename this file to whatever name you want for this deck!\n")
+                    f.write("#P.S. The game requires at least 4 words before it can run properly\n")
+                    f.write("#Feel free to remove these instructions after you're done editing\n")
+                    f.write("word1:meaning1\n")
+                    f.write("word2:meaning2\n")
+                    f.write("word3:meaning3\n")
+                    f.write("word4:meaning4\n")
                 main_app.update()
                 self.after(500)
                 script_dir = os.path.dirname(__file__) # Gets directory of main.py file
@@ -274,7 +278,7 @@ class GameCanvas(tk.Canvas):
 
     def get_all_questions(self, parent):
         with open(("words_lists/{}".format(parent.language)), 'r', encoding = "utf8") as f: # utf8 encoding is used to handle some characters
-            questions = [dict(zip(("question", "answer"), map(lambda s:s.strip(), (line.split(":"))))) for line in f if ":" in line]
+            questions = [dict(zip(("question", "answer"), map(lambda s:s.strip(), (line.split(":"))))) for line in f if ":" in line and line[0] != "#"]
         return questions
 
     def load_questions(self):
