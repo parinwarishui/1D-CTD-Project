@@ -19,19 +19,19 @@ class MainApp(tk.Tk):
     def __init__(self):
         super().__init__() # Initialize MainApp as a child class of tk.Tk
         self.title("Duolango") # Set window title
-        self.geometry('540x540')
-        self.resizable(False, False)
-        self.rowconfigure(0, weight=1)
+        self.geometry('540x540') # Set initial screen size
+        self.resizable(False, False) # Disable resizing
+        self.rowconfigure(0, weight = 1) # Control size of main frame widget within the window
         self.columnconfigure(0, weight = 1)
 
         self.main_container = ttk.Frame(self) # Create a container frame with MainApp as parent
-        self.main_container.grid(column = 0, row = 0, sticky = "nsew", padx = 0, pady = 0) 
         # Put main_container in a MainApp grid (row 0, col 0), sticky N S E W means centered in grid
+        self.main_container.grid(column = 0, row = 0, sticky = "nsew", padx = 0, pady = 0) 
         self.main_container.rowconfigure(0, weight = 1) # Configure main_container grid of col 0 with weight 1
         self.main_container.columnconfigure(0, weight = 1) # Configure main_container grid of row 0 with weight 1
 
-        self.get_high_score()
-        self.goto_page(StartPage)
+        self.get_high_score() # Load high scores from high_score.txt
+        self.goto_page(StartPage) # Go to title page
 
     def goto_page(self, target_page, language = None, inf_mode = False):
         winsound.PlaySound(None, winsound.SND_PURGE)
@@ -345,7 +345,7 @@ class GameCanvas(tk.Canvas):
         self.screen.delay(10) # Return delay to default value
 
         self.after(1000)
-        ttk.Label(self, text = "You Died!", background = "black", foreground = "white", justify = "center", 
+        ttk.Label(self, text = "You Lose!", background = "black", foreground = "white", justify = "center", 
                   font = ("Comic Sans MS", 50)).place(relx = 0.5, rely = 0.2, anchor = "center")
         main_app.update()
         self.after(1000)
