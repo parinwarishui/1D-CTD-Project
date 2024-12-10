@@ -61,6 +61,7 @@ class MainApp(tk.Tk):
             self.bind_movement_keys() # Runs the bind_movement_keys function
         else: # If self.page is not an instance of GamePage (if self.page is a StartPage)
             self.unbind_movement_keys() # Runs the unbind_movement_keys function
+        return
 
     def bind_movement_keys(self):
         """
@@ -71,6 +72,7 @@ class MainApp(tk.Tk):
         # passes event.keysym (contains pressed buttons as str type) as argument
         self.bind("<KeyPress>", lambda event : self.page.game_canvas.move(event.keysym, self.page, self))
         self.bind("<KeyRelease>", lambda event : self.page.game_canvas.remove_released_keys(event.keysym))
+        return
     
     def unbind_movement_keys(self):
         """
@@ -78,6 +80,7 @@ class MainApp(tk.Tk):
         """
         self.unbind("<KeyPress>")
         self.unbind("<KeyRelease>")
+        return
 
     def get_high_score(self):
         '''Function to get high score of each language file from txt files'''
@@ -88,6 +91,7 @@ class MainApp(tk.Tk):
             lines = f.readlines() # assign list of every line to lines
             # Read all lines and put high scores into language:score dictionary format
             self.high_scores = {lang.strip():score.strip() for lang, score in [line.split(":") for line in lines]}
+        return
 
     def update_highscore(self, new_high_score, language):
         """
@@ -98,6 +102,7 @@ class MainApp(tk.Tk):
         with open("assets/high_score.txt", "w+") as f: # Rewrites high_score.txt with updated high score values
             for language, score in self.high_scores.items():
                 f.write("{}:{}\n".format(language, score))
+        return
 
 class StartPage(tk.Frame):
     '''Starting Page (Title + Play buttons)'''
@@ -115,7 +120,7 @@ class StartPage(tk.Frame):
         self.language_choice = tk.StringVar() # Creates a variable self.language_choice to store Combobox choice
         self.language_combobox = ttk.Combobox(self, textvariable = self.language_choice, state = "readonly", values = available_languages)
         self.language_combobox.grid(column = 1, row = 3, columnspan = 2, pady = 5) # Places combobox
-        self.language_combobox.bind("<<ComboboxSelected>>", lambda e : choose_language()) # Runs choose_language() if a selection is made
+        self.language_combobox.bind("<<ComboboxSelected>>", lambda e : self.choose_language(main_app)) # Runs choose_language() if a selection is made
 
         self.play_button = tk.Button(self, text = "   Play Game   ", command = lambda : main_app.goto_page(GamePage, self.language_choice.get()), 
                                  relief = "raised", font = ("gothic", 11, "bold"), height = 1, state = "disabled", 
@@ -131,7 +136,7 @@ class StartPage(tk.Frame):
         highscore_label = ttk.Label(self, textvariable = self.score_str, justify = "center", font = ("fixedsys", 13))
         highscore_label.grid(column = 1, row = 1, columnspan = 2, sticky = "n", pady = 3) # Places highscore label
         
-        self.refresh_button = tk.Button(self, text = " Refresh ", command = lambda : update_combobox(), 
+        self.refresh_button = tk.Button(self, text = " Refresh ", command = lambda : self.update_combobox(), 
                                  relief = "raised", font = ("gothic", 11), height = 1) # Creates a refresh button (but not placed)
         
         # Configuring sizes to make start page look neat
@@ -140,56 +145,58 @@ class StartPage(tk.Frame):
         self.rowconfigure(0, weight = 3)
         self.rowconfigure(5, weight = 4)
 
-        def choose_language():
-            '''Function that runs when a combobox selection is made'''
-            if self.language_choice.get() == "Add another language": # If selection is to add another language
-                # Disable buttons (+ visuals)
-                self.learn_button["foreground"] = "gray32"
-                self.learn_button["background"] = "gray64"
-                self.learn_button["state"] = "disabled"
-                self.play_button["foreground"] = "gray32"
-                self.play_button["background"] = "gray64"
-                self.play_button["state"] = "disabled"
-                
-                self.refresh_button.grid(column = 1, row = 4, columnspan = 2, pady = 0) # Shows refresh button
-                self.score_str.set("High Score: {}".format("--")) # Sets high score to -- (since no language has been chosen)
-                
-                with open("words_lists/RenameToLanguageName.txt", "w+") as f: # Creates a new txt file
-                                                                              # w+ means read and write mode
-                    # Writes instructions & examples
-                    f.write("#Enter your words along with their translations here!\n")
-                    f.write("#You can look at the other pre-made txt files for reference\n")
-                    f.write("#Don't forget to rename this file to whatever name you want for this deck!\n")
-                    f.write("#P.S. The game requires at least 4 words before it can run properly\n")
-                    f.write("#Feel free to remove these instructions after you're done editing\n")
-                    f.write("word1:meaning1\n")
-                    f.write("word2:meaning2\n")
-                    f.write("word3:meaning3\n")
-                    f.write("word4:meaning4\n")
-                main_app.update() # Update the app (so combobox shows new selection)
-                self.after(500) # Pauses the program for 500 ms
-                script_dir = os.path.dirname(__file__) # Gets directory of main.py file
-                os.startfile(os.path.realpath(os.path.join(script_dir, "words_lists"))) # Opens words_lists folder
-                os.startfile(os.path.join(script_dir, "words_lists/RenameToLanguageName.txt")) # Opens newly made txt file
+    def choose_language(self, main_app):
+        '''Function that runs when a combobox selection is made'''
+        if self.language_choice.get() == "Add another language": # If selection is to add another language
+            # Disable buttons (+ visuals)
+            self.learn_button["foreground"] = "gray32"
+            self.learn_button["background"] = "gray64"
+            self.learn_button["state"] = "disabled"
+            self.play_button["foreground"] = "gray32"
+            self.play_button["background"] = "gray64"
+            self.play_button["state"] = "disabled"
+            
+            self.refresh_button.grid(column = 1, row = 4, columnspan = 2, pady = 0) # Shows refresh button
+            self.score_str.set("High Score: {}".format("--")) # Sets high score to -- (since no language has been chosen)
+            
+            with open("words_lists/RenameToLanguageName.txt", "w+") as f: # Creates a new txt file
+                                                                            # w+ means read and write mode
+                # Writes instructions & examples
+                f.write("#Enter your words along with their translations here!\n")
+                f.write("#You can look at the other pre-made txt files for reference\n")
+                f.write("#Don't forget to rename this file to whatever name you want for this deck!\n")
+                f.write("#P.S. The game requires at least 4 words before it can run properly\n")
+                f.write("#Feel free to remove these instructions after you're done editing\n")
+                f.write("word1:meaning1\n")
+                f.write("word2:meaning2\n")
+                f.write("word3:meaning3\n")
+                f.write("word4:meaning4\n")
+            main_app.update() # Update the app (so combobox shows new selection)
+            self.after(500) # Pauses the program for 500 ms
+            script_dir = os.path.dirname(__file__) # Gets directory of main.py file
+            os.startfile(os.path.realpath(os.path.join(script_dir, "words_lists"))) # Opens words_lists folder
+            os.startfile(os.path.join(script_dir, "words_lists/RenameToLanguageName.txt")) # Opens newly made txt file
+        else: # if selection is an already available language
+            # Enables buttons (+ visuals)
+            self.learn_button["foreground"] = "gray3" 
+            self.learn_button["background"] = "gray95"
+            self.learn_button["state"] = "normal"
+            self.play_button["foreground"] = "gray3"
+            self.play_button["background"] = "gray95"
+            self.play_button["state"] = "normal"
 
-            else: # if selection is an already available language
-                # Enables buttons (+ visuals)
-                self.learn_button["foreground"] = "gray3" 
-                self.learn_button["background"] = "gray95"
-                self.learn_button["state"] = "normal"
-                self.play_button["foreground"] = "gray3"
-                self.play_button["background"] = "gray95"
-                self.play_button["state"] = "normal"
+            self.refresh_button.grid_forget() # Hides refresh button
+            # Updates the score_str variable to match the selected language's high score
+            self.score_str.set("High Score: {}".format(int(main_app.high_scores.get(self.language_choice.get(), 0))))
+        return
+        
 
-                self.refresh_button.grid_forget() # Hides refresh button
-                # Updates the score_str variable to match the selected language's high score
-                self.score_str.set("High Score: {}".format(int(main_app.high_scores.get(self.language_choice.get(), 0))))
-
-        def update_combobox():
-            '''Function that runs when reset button is pressed'''
-            available_languages = os.listdir("words_lists") # Lists all files in words_lists folder
-            available_languages.append("Add another language") # Adds option to add another language
-            self.language_combobox["values"] = available_languages # Updates values of combobox with current available languages
+    def update_combobox(self):
+        '''Function that runs when reset button is pressed'''
+        available_languages = os.listdir("words_lists") # Lists all files in words_lists folder
+        available_languages.append("Add another language") # Adds option to add another language
+        self.language_combobox["values"] = available_languages # Updates values of combobox with current available languages
+        return
 
 class GameCanvas(tk.Canvas):
     '''Class for game canvas, mainly used for turtle'''
@@ -245,59 +252,74 @@ class GameCanvas(tk.Canvas):
         random.shuffle(self.available_questions) # Shuffle the available questions
 
         self.init_round() # Initialize the 1st round
+        return
 
     def init_round(self):
         '''Function to initialize each round'''
         self.t.goto(self.canvas_width/2, -self.canvas_height/2) # Centerize
         self.t.setheading(90) # Facing upwards
-        self.load_questions()
-        self.question_display.clear()        
-        self.question_display.write(self.question["question"], align = "center", font=("Arial", 15, "bold"))
-        self.show_questions()
+        self.load_questions() # Get 1 question (as the correct question-answer pair) & 3 incorrect options
+        self.question_display.clear() # Clear the question text
+        self.question_display.write(self.question["question"], align = "center", font=("Arial", 15, "bold")) # Write question
+        self.show_questions() # Write 4 possible answers
         self.pressed_keys = {"w" : False, "d" : False, "s" : False, "a" : False} # Initializing keys for movement
+        return
 
     def move(self, pressed_key, parent, main_app):
-        if pressed_key not in self.pressed_keys:
-            return
-        self.pressed_keys[pressed_key] = True
+        """
+        Function to move the turtle (which also calls boundary and collision check functions)
+        Called whenever a key is pressed (from <KeyPress> bind in main_app)
+        """
+        if pressed_key not in self.pressed_keys: # If the pressed key is not a key in list of pressable keys
+            return # Don't continue the rest of this function
+        self.pressed_keys[pressed_key] = True # Set the value of pressed key to True
         
-        if self.pressed_keys["w"] and self.pressed_keys["d"]:
+        if self.pressed_keys["w"] and self.pressed_keys["d"]: # northeast
             self.t.setheading(45)
-        elif self.pressed_keys["w"] and self.pressed_keys["a"]:
+        elif self.pressed_keys["w"] and self.pressed_keys["a"]: # nortwest
             self.t.setheading(135)
-        elif self.pressed_keys["s"] and self.pressed_keys["a"]:
+        elif self.pressed_keys["s"] and self.pressed_keys["a"]: # southwest
             self.t.setheading(225)
-        elif self.pressed_keys["s"] and self.pressed_keys["d"]:
+        elif self.pressed_keys["s"] and self.pressed_keys["d"]: # southeast
             self.t.setheading(315)
-        elif self.pressed_keys["w"]:
+        elif self.pressed_keys["w"]: # north
             self.t.setheading(90)
-        elif self.pressed_keys["a"]:
+        elif self.pressed_keys["a"]: # east
             self.t.setheading(180)
-        elif self.pressed_keys["s"]:
+        elif self.pressed_keys["s"]: # south
             self.t.setheading(270)
-        elif self.pressed_keys["d"]:
+        elif self.pressed_keys["d"]: # east
             self.t.setheading(0)
-        self.t.forward(10)
+        self.t.forward(10) # move forward
 
-        self.boundary_check()
-        self.collision_check(parent, main_app)
+        self.boundary_check() # Check if turtle passes the boundaries
+        self.collision_check(parent, main_app) # Check if turtle touches one of the answers
         return
     
     def remove_released_keys(self, released_key):
-        if released_key not in self.pressed_keys:
+        """
+        Set movement key in self.pressed_keys to False
+        This function is called when a key is released
+        """
+        if released_key not in self.pressed_keys: # Check if released_key is not in dict to prevent key error
             return
         self.pressed_keys[released_key] = False
         return
 
     def boundary_check(self):
-        if self.t.xcor() > self.canvas_width:
-            self.t.setx(self.canvas_width)
+        """
+        Stops turtle from moving off screen
+        This function is called in the move function (whenever the turtle moves)
+        """
+        if self.t.xcor() > self.canvas_width: # If x coordinates > canvas width
+            self.t.setx(self.canvas_width) # Set x coordinates to canvas width
         elif self.t.xcor() < 0:
             self.t.setx(0)
-        if self.t.ycor() < -self.canvas_height:
-            self.t.sety(-self.canvas_height)
+        if self.t.ycor() < -self.canvas_height: # If y coordinates < -canvas height (negative since 0, 0 is at top left)
+            self.t.sety(-self.canvas_height) # Set y coordinates to canvas height
         elif self.t.ycor() > 0:
             self.t.sety(0)
+        return
     
     def collision_check(self, parent, main_app: MainApp):
         for box_num, textbox in enumerate(self.textboxes):
@@ -321,6 +343,7 @@ class GameCanvas(tk.Canvas):
 
                 self.after(1000)
                 self.init_round()
+        return
                 
 
     def get_all_questions(self, parent):
@@ -345,12 +368,14 @@ class GameCanvas(tk.Canvas):
                 options_count += 1
         self.options.append(self.question)
         random.shuffle(self.options)
+        return
     
     def show_questions(self):
         for textbox, option in zip(self.textboxes, self.options):
             textbox.color("white")
             textbox.clear()
             textbox.write(option["answer"], align = "center", font = ("Arial", 12, "normal"))
+        return
 
     def end_game(self, parent, main_app: MainApp):
         winsound.PlaySound(None, winsound.SND_PURGE)
@@ -402,6 +427,7 @@ class GameCanvas(tk.Canvas):
                                 command = lambda: main_app.goto_page(GamePage, parent.language))
         again_button.place(relx = 0.6, rely = 0.44, anchor = "center")
         main_app.update()
+        return
 
 class InfiniteGameCanvas(GameCanvas):
     def collision_check(self, parent, main_app: MainApp): # Same as GameCanvas but no punishment if wrong ans
@@ -417,6 +443,7 @@ class InfiniteGameCanvas(GameCanvas):
                 if correct:
                     parent.update_score()
                 self.init_round()
+        return
 
 class GamePage(ttk.Frame):
     def __init__(self, parent, main_app: MainApp, language, canvas_type = GameCanvas, inf_mode = False):
