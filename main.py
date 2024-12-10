@@ -1,7 +1,6 @@
 '''
 Language Game
 
-Google Docs to store stuff: https://docs.google.com/document/d/14FtWRdg6qmq8TTLPX0pCTY7JsXHCW1ZLrHLghgDIbKA/edit?tab=t.0
 '''
 
 # import all the libraries..
